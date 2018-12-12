@@ -1,6 +1,7 @@
 # Main file
 
 import cProfile
+import io
 import pstats
 import sys
 sys.path.insert(0, 'src/parsing')
@@ -18,6 +19,17 @@ def main_timeprof():
   print()
 
 
-cProfile.run('main_timeprof()', 'cprofile_stats.txt')
-p = pstats.Stats('cprofile_stats.txt')
-p.strip_dirs().sort_stats('cumulative').print_stats('_timeprof')
+def main_with_time_profiling():
+  pr = cProfile.Profile()
+  pr.enable()
+
+  main_timeprof()
+
+  pr.disable()
+  s = io.StringIO()
+  ps = pstats.Stats(pr, stream=s)
+  ps.sort_stats('cumulative').print_stats('_timeprof')
+  print(s.getvalue())
+
+
+main_with_time_profiling()

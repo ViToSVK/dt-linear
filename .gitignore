@@ -1,6 +1,3 @@
-# Time profiling
-cprofile_stats.txt
-
 # Datasets
 *.arff
 *.prism
