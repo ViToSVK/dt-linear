@@ -30,6 +30,7 @@ def main_with_time_profiling():
   ps = pstats.Stats(pr, stream=s)
   ps.sort_stats('cumulative').print_stats('_timeprof')
   print(s.getvalue())
+  s.close()
 
 
 main_with_time_profiling()
