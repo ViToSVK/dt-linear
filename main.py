@@ -2,6 +2,7 @@
 
 import cProfile
 import io
+import os
 import pstats
 import sys
 sys.path.insert(0, 'src/parsing')
@@ -10,12 +11,14 @@ from parser import parse_timeprof as parse
 
 
 def main_timeprof():
-  ds = parse('datasets/games_wash','2_s_C_wash_4_2_1_3_f.arff')
-  print(ds.X.shape)
-  print(ds.X[:4])
-  print(ds.y.shape)
-  print(ds.y[:4])
-  print(ds.labels)
+  for mdpdir in ['csma', 'consensus']:
+    for filename in os.listdir('datasets/mdps_%s' % mdpdir):
+      ds = parse('datasets/mdps_%s' % mdpdir, filename)
+      ds.dump()
+      print()
+
+  ds = parse('datasets/games_wash', '2_s_C_wash_2_3_1_2_t.arff')
+  ds.dump()
   print()
 
 
