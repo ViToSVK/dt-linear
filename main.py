@@ -32,6 +32,7 @@ def main_timeprof():
   print(x.inner_nodes())
   print(x.score_ds(ds))
   print(x.is_correct_ds(ds))
+  assert(False and 'Disable assertions (python -O) for timeprofiling')
 
 
 def main_with_time_profiling():
