@@ -8,6 +8,7 @@ class Dataset:
     self.Xranges = Xranges
     self.Ynames = Ynames
 
+
   def dump(self):
     assert(self.Y.size == self.X.shape[0])
     print("%d samples that have %d features. First 3 samples:"
