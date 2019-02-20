@@ -3,21 +3,20 @@
 class Node:
   totalcount = 0
 
-  def __init__(self, dataX, dataY, parent):
+  def __init__(self, dataset, parent):
     Node.totalcount += 1
     #
     self.id = Node.totalcount
     self.level = 1 if (parent is None) else parent.level + 1
     #
-    self.dataX = dataX
-    self.dataY = dataY
+    self.data = dataset
     #
     self.predicate = None
     self.line = None
     self.answer = None
     #
-    self.childL = None
-    self.childR = None
+    self.childSAT = None
+    self.childUNSAT = None
     self.parent = parent
 
 
@@ -26,8 +25,8 @@ class Node:
 
 
   def is_leaf(self):
-    assert((self.childL is None) == (self.childR is None))
-    return (self.childL is None)
+    assert((self.childSAT is None) == (self.childUNSAT is None))
+    return (self.childSAT is None)
 
 
   def is_predicate(self):

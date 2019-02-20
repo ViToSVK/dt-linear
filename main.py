@@ -21,9 +21,11 @@ def main_timeprof():
       print()
   """
 
-  # ds = parse('datasets/games_wash', '2_s_C_wash_2_3_1_2_t.arff')
-  # ds = parse('datasets/games_wash', '2_s_C_wash_3_4_4_3_t.arff')
-  ds = parse('datasets/games_wash', '2_s_C_wash_3_5_3_3_f.arff')
+  folder = 'games_wash'
+  filename = '2_s_C_wash_2_3_1_2_t'
+
+  ds = parse('datasets/%s' % folder, '%s.%s'
+             % (filename, 'arff' if 'games' in folder else 'prism'))
   ds.dump()
   print()
 
@@ -32,6 +34,8 @@ def main_timeprof():
   print(x.inner_nodes())
   print(x.score_ds(ds))
   print(x.is_correct_ds(ds))
+  x.graph(filename, png=True)
+
   assert(False and 'Disable assertions (python -O) for timeprofiling')
 
 
