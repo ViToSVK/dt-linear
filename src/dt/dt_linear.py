@@ -1,11 +1,15 @@
 # Decision Tree with linear classifiers
 
 from asyncio import Queue
+from sklearn.metrics import accuracy_score
+from sklearn.svm import LinearSVC
+import sys
+sys.path.insert(0, 'src/parsing')
+
+from dataset import Dataset
 from decision_tree import Decision_tree
 from node import Node
 import node_types
-from sklearn.metrics import accuracy_score
-from sklearn.svm import LinearSVC
 
 
 class DT_linear(Decision_tree):
@@ -36,33 +40,31 @@ class DT_linear(Decision_tree):
 
       if len(c.data.Ynames) == 2:
         # Possible to crate a linear classifier here
-        lc = svm.LinearSVC(penalty='l1', tol=0.000001, C=10000.0,
-                           dual=(c.data.X.shape[0] < c.data.X.shape[1]),
-                           fit_intercept=True, random_state=42)
-        # Create a column filter to only include features
-        # that do not contain the same value in all samples
-        feature_filter = []
+        # Conjunction (penalty='l1' loss='squared_hinge' dual=True) not supported
+        lc = LinearSVC(penalty='l1', tol=0.000001, C=10000.0,
+                       dual=False, fit_intercept=True, random_state=42)
+        # Create a mask to only include features that
+        # do not contain the same value in all samples
+        feature_mask = []
         for i, rnge in enumerate(c.data.Xranges):
           assert(rnge[0] <= rnge[1])
-          if rnge[0] < rnge[1]:
-            feature_filter.add(i)
-        lc.fit(c.data.X[:,feature_filter], c.data.Y)
-        sc = accuracy_score(normalize=False, y_true=c.data.Y
-                            y_pred=lc.predict(c.data.X[:,feature_filter]))
+          feature_mask.append(rnge[0] < rnge[1])
+        lc.fit(c.data.X[:,feature_mask], c.data.Y)
+        sc = accuracy_score(normalize=False, y_true=c.data.Y,
+                            y_pred=lc.predict(c.data.X[:,feature_mask]))
         if sc == c.data.Y.size:
           # Linear classifier is correct, make a leaf node with it
-          c.answer = node_types.Line(lc, feature_filter,
-                                     list(c.data.Ynames.keys()), c.data.Y.size)
+          c.line = node_types.Line(lc, feature_mask,
+                                   list(c.data.Ynames.keys()), c.data.Y.size)
           continue
 
       # We need to split here
-      c.predicate = self.split_criterion(c.data)
-      mask, sat_Xranges, unsat_Xranges = c.predicate.evaluate_ranges(c.data.X)
+      c.predicate = self.split_criterion.best(c.data)
+      mask, s_Xranges, u_Xranges = c.predicate.evaluate_ranges(c.data.X)
       Ynames_back = {}
       for name, idx in c.data.Ynames.items():
         assert(idx not in Ynames_back)
         Ynames_back[idx] = name
-      for
       # SAT
       s_X = c.data.X[mask]
       s_Y = c.data.Y[mask]

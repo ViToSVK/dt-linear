@@ -18,10 +18,10 @@ class Dataset:
     print("Names of features:")
     print(self.Xnames)
     print("Value ranges for features:")
-    for i,ran in enumerate(self.Xranges):
+    for i, ran in enumerate(self.Xranges):
       if i > 0 and not i % 10:
         print()
-      print(ran,end=' ' if i % 10 != 9 else '')
+      print(ran, end=' ' if i % 10 != 9 else '')
     print()
     print("Names of classes occuring:")
     print(self.Ynames)
