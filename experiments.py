@@ -92,7 +92,7 @@ def decode_output(output):
     parts = output.split(b'\n')
     for pp in parts:
       dec = pp.decode('utf-8')
-      if 'ConvergenceWarning: Liblinear failed to converge' not in dec:
+      if 'ConvergenceWarning' not in dec:
         decoded.append(dec)
   except:
     decoded.append('Failed to parse the output')
