@@ -24,11 +24,14 @@ class DT_sklearn:
   def fit_ds(self, dataset):
     self.Xnames = dataset.Xnames
     self.Ynames = []
+    Yback = {}
+    for name, idx in dataset.Ynames.items():
+      Yback[idx] = name
     i = -1
-    for name in sorted(dataset.Ynames):
+    for idx in sorted(Yback):
       i += 1
-      assert(dataset.Ynames[name] == i)
-      self.Ynames.append(name)
+      assert(idx == i)
+      self.Ynames.append(Yback[idx])
     self.fit(dataset.X, dataset.Y)
 
 

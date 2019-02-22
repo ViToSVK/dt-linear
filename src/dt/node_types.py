@@ -25,9 +25,10 @@ class Predicate:
     assert(len(X.shape) == 2)
     sat_min, sat_max, unsat_min, unsat_max = None, None, None, None
     mask = []
-    for sample in X:
-      res = self.evaluate(sample)
+    for sample_float in X:
+      res = self.evaluate(sample_float)
       mask.append(res)
+      sample = sample_float.astype(int)
       if res:
         if sat_min is None:
           sat_min = sample

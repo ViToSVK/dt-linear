@@ -98,5 +98,3 @@ class DT_linear(Decision_tree):
     # Finished
     self.nodes = Node.totalcount - nodes_at_start
 
-
-

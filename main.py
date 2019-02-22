@@ -14,10 +14,10 @@ from dt_sklearn import DT_sklearn
 from dt_linear import DT_linear
 from entropy import Split_entropy
 
-def main_timeprof():
+def main_timeprof(folder, filename):
   def sklearn_timeprof(tree, dataset):
     tree.fit_ds(dataset)
-  def lc_timeprof(tree, dataset):
+  def dtwithlc_timeprof(tree, dataset):
     tree.fit_ds(dataset)
 
   """
@@ -28,39 +28,45 @@ def main_timeprof():
       print()
   """
 
-  folder = 'games_wash'
-  filename = '2_s_C_wash_2_3_1_2_t'
-
-  ds = parse('datasets/%s' % folder, '%s.%s'
-             % (filename, 'arff' if 'games' in folder else 'prism'))
-  ds.dump()
-  print()
+  ds = parse('datasets/%s' % folder, filename)
+  #ds.dump()
 
 
   sk = DT_sklearn()
   sklearn_timeprof(sk, ds)
-  print(sk.inner_nodes())
-  print(sk.score_ds(ds))
-  print(sk.is_correct_ds(ds))
-  sk.graph('%s_SK' % filename, png=True)
-  print()
+  print('sklearn_nodes: %d' % sk.inner_nodes())
+  print('sklearn_correct: %s' % sk.is_correct_ds(ds))
+  #sk.graph('%s_SK' % filename, png=True)
 
   lc = DT_linear(Split_entropy())
-  lc_timeprof(lc, ds)
-  print(lc.inner_nodes())
-  print(lc.is_correct_ds(ds))
-  lc.graph('%s_LC' % filename, png=True)
-  print()
+  dtwithlc_timeprof(lc, ds)
+  print('dtwithlc_nodes: %d' % lc.inner_nodes())
+  corr = lc.is_correct_ds(ds)
+  print('dtwithlc_correct: %s' % corr)
+  lc.graph('%s%s_LC' % ('' if corr else 'BAD_', filename), png=True)
 
-
-  assert(False and 'Disable assertions (python -O) for timeprofiling')
+  #assert(False and 'Disable assertions (python -O) for timeprofiling')
 
 
 def main_with_time_profiling():
+  if len(sys.argv) != 3:
+    print('NEED 2 ARGUMENTS - FOLDER NAME, DATASET NAME')
+    return
+  if 'games' not in sys.argv[1] and 'mdps' not in sys.argv[1]:
+    print('FOLDER NAME MUST CONTAIN "games" OR "mdps", PROVIDED: %s' % sys.argv[1])
+    return
+  if not os.path.isdir('datasets/%s' % sys.argv[1]):
+    print('PROVIDED FOLDER IS NOT IN DATASETS: %s' % sys.argv[1])
+    return
+  fullpath = 'datasets/%s/%s' % (sys.argv[1], sys.argv[2])
+  if not os.path.isfile(fullpath):
+    print('PROVIDED DATASET DOES NOT EXIST: %s' % fullpath)
+    return
+
   pr = cProfile.Profile()
   pr.enable()
 
-  main_timeprof()
+  main_timeprof(sys.argv[1], sys.argv[2])
 
   pr.disable()
   s = io.StringIO()

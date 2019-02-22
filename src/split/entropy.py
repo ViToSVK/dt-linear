@@ -173,6 +173,3 @@ class Split_entropy:
     return Predicate(fname=data.Xnames[b_pos], fpos=b_pos,
                      equality=b_eq, number=b_val)
 
-
-
-
