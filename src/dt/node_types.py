@@ -52,10 +52,11 @@ class Predicate:
 
 class Line:
   'Linear classifier'
-  def __init__(self, lc, feature_mask, cnames, sample_no):
+  def __init__(self, lc, feature_mask, scaler, cnames, sample_no):
     assert(len(cnames) == 2)
     self.lc = lc
     self.feature_mask = feature_mask
+    self.scaler = scaler
     self.name = '[%s / %s] LC (%d)' % (cnames[0], cnames[1], sample_no)
 
 
@@ -64,7 +65,8 @@ class Line:
     XX = X[np.newaxis,:] if (len(X.shape) == 1) else X
     # apply feature mask
     XX = XX[:,self.feature_mask]
-    ret = self.lc.predict(XX)
+    XX_trans = self.scaler.transform(XX)
+    ret = self.lc.predict(XX_trans)
     return np.squeeze(ret) if ret.size == 1 else ret
 
 

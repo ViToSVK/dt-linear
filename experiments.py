@@ -91,7 +91,9 @@ def decode_output(output):
   try:
     parts = output.split(b'\n')
     for pp in parts:
-      decoded.append(pp.decode('utf-8'))
+      dec = pp.decode('utf-8')
+      if 'ConvergenceWarning: Liblinear failed to converge' not in dec:
+        decoded.append(dec)
   except:
     decoded.append('Failed to parse the output')
   global TIMED_OUT

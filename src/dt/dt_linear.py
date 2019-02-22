@@ -2,6 +2,7 @@
 
 from asyncio import Queue
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
 import sys
 sys.path.insert(0, 'src/parsing')
@@ -49,12 +50,15 @@ class DT_linear(Decision_tree):
         for i, rnge in enumerate(c.data.Xranges):
           assert(rnge[0] <= rnge[1])
           feature_mask.append(rnge[0] < rnge[1])
-        lc.fit(c.data.X[:,feature_mask], c.data.Y)
+        # Create a scaler to transform data before fitting
+        scaler = StandardScaler()
+        X_transformed = scaler.fit_transform(c.data.X[:,feature_mask])
+        lc.fit(X_transformed, c.data.Y)
         sc = accuracy_score(normalize=False, y_true=c.data.Y,
-                            y_pred=lc.predict(c.data.X[:,feature_mask]))
+                            y_pred=lc.predict(X_transformed))
         if sc == c.data.Y.size:
           # Linear classifier is correct, make a leaf node with it
-          c.line = node_types.Line(lc, feature_mask,
+          c.line = node_types.Line(lc, feature_mask, scaler,
                                    list(c.data.Ynames.keys()), c.data.Y.size)
           continue
 
