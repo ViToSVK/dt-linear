@@ -14,23 +14,15 @@ from dt_sklearn import DT_sklearn
 from dt_linear import DT_linear
 from entropy import Split_entropy
 
+
 def main_timeprof(folder, filename):
   def sklearn_timeprof(tree, dataset):
     tree.fit_ds(dataset)
   def dtwithlc_timeprof(tree, dataset):
     tree.fit_ds(dataset)
 
-  """
-  for mdpdir in ['csma', 'consensus']:
-    for filename in os.listdir('datasets/mdps_%s' % mdpdir):
-      ds = parse('datasets/mdps_%s' % mdpdir, filename)
-      ds.dump()
-      print()
-  """
-
   ds = parse('datasets/%s' % folder, filename)
   #ds.dump()
-
 
   sk = DT_sklearn()
   sklearn_timeprof(sk, ds)
@@ -77,3 +69,4 @@ def main_with_time_profiling():
 
 
 main_with_time_profiling()
+

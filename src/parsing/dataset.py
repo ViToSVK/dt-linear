@@ -25,3 +25,4 @@ class Dataset:
     print()
     print("Names of classes occuring:")
     print(self.Ynames)
+

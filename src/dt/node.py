@@ -58,3 +58,4 @@ class Node:
     if self.is_answer():
       return self.answer.name
     return 'NOT SET'
+

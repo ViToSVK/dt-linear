@@ -89,3 +89,4 @@ class DT_sklearn:
       return 0
     assert(nc % 2 == 1) # nc = inner + leaves = 2 * inner + 1
     return (nc - 1) // 2
+

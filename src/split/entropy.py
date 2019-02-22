@@ -6,6 +6,7 @@ sys.path.insert(0, '../dt')
 
 from node_types import Predicate
 
+
 class Split_entropy:
   def __init__(self):
     self.EPSILON = 0.00000001

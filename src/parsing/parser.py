@@ -10,3 +10,4 @@ def parse_timeprof(folder, filename):
   if '.prism' in filename:
     return parse_prism(folder, filename)
   assert(False and 'Unsupported file type for parsing')
+

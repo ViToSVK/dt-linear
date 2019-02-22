@@ -44,3 +44,4 @@ def parse_prism(folder, filename):
         Xranges.append([int(e) for e in rnge.split(',')])
   return Dataset(np.array(X), np.array(Y), np.array(Xnames),
                  np.array(Xranges), Ynames)
+
