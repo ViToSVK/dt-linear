@@ -8,8 +8,8 @@ from threading import Timer
 
 # Run with assertions?
 ASSERTIONS = True
-# Timeout in seconds (10 minutes)
-TIMEOUT = 10*60
+# Timeout in seconds (4 hours)
+TIMEOUT = 4*60*60
 # A flag that tracks whether a timeout occurred
 TIMED_OUT = False
 # Path to the report file - set up from sys.argv[1]
