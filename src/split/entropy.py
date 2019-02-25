@@ -102,7 +102,7 @@ class Split_entropy:
     log2_Xshape0 = log2(data.X.shape[0])
     for y in total:
       cur_ent -= (total[y] * (log2(total[y]) - log2_Xshape0))
-    assert(cur_ent > self.EPSILON)
+    assert(cur_ent > 0.)
 
     # Find the best predicate (entropies are positive, we minimize)
     b_ent = cur_ent
@@ -148,8 +148,8 @@ class Split_entropy:
 
     for (pos, val) in eq_s:
       ent = get_ent(pos, val, equality=True)
-      if ent is not None:
-        assert(ent > self.EPSILON and ent < cur_ent + self.EPSILON)
+      if ent is not None and (ent < cur_ent + self.EPSILON):
+        assert(ent >= 0.)
         if b_eq is None or (b_ent - ent > self.EPSILON):
           # New best
           b_ent = ent
@@ -159,8 +159,8 @@ class Split_entropy:
 
     for (pos, val) in in_s:
       ent = get_ent(pos, val, equality=False)
-      if ent is not None:
-        assert(ent > self.EPSILON and ent < cur_ent + self.EPSILON)
+      if ent is not None and (ent < cur_ent + self.EPSILON):
+        assert(ent >= 0.)
         if b_eq is None or (b_ent - ent > self.EPSILON):
           # New best
           b_ent = ent
