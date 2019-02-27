@@ -6,6 +6,7 @@
 results/*/*.dot
 results/*/*.png
 results/*/*.txt
+results/reports/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
