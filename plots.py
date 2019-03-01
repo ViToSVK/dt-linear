@@ -134,7 +134,9 @@ def main():
       all_plot(stats, 'baseline', 'dtwithlc', plotname)
       versus_plot(stats, 'baseline', 'dtwithlc', plotname)
       ratio_plot(stats, 'baseline', 'dtwithlc', plotname)
-
+      all_plot(stats, 'sklearn', 'dtwithlc', plotname)
+      versus_plot(stats, 'sklearn', 'dtwithlc', plotname)
+      ratio_plot(stats, 'sklearn', 'dtwithlc', plotname)
 
 main()
 
