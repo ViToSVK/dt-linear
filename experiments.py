@@ -15,7 +15,7 @@ TIMED_OUT = False
 # Path to the report file - set up from sys.argv[1]
 REPORT_PATH = None
 # Algorithms
-ALGOS = ['sklearn', 'dtwithlc']
+ALGOS = ['sklearn', 'baseline', 'dtwithlc']
 
 
 def pretty_time(s):
@@ -67,18 +67,19 @@ def parse_output(output):
     parts = output.split(b'\n')
     for pp in parts:
       p = pp.decode('utf-8')
-      if 'sklearn' in p or 'dtwithlc' in p:
-        algo = 'sklearn' if 'sklearn' in p else 'dtwithlc'
-        if '_timeprof' in p:
-          # Tree building time
-          result[algo]['time'] = float(p.split()[3])
-        elif '_nodes' in p:
-          # Number of inner nodes
-          result[algo]['nodes'] = int(p.split(':')[1].strip())
-        elif '_correct' in p:
-          cor = p.split(':')[1].strip()
-          if cor == 'True':
-            result[algo]['correct'] = 'T'
+      for algo in ALGOS:
+        if algo in p:
+          if '_timeprof' in p:
+            # Tree building time
+            result[algo]['time'] = float(p.split()[3])
+          elif '_nodes' in p:
+            # Number of inner nodes
+            result[algo]['nodes'] = int(p.split(':')[1].strip())
+          elif '_correct' in p:
+            cor = p.split(':')[1].strip()
+            if cor == 'True':
+              result[algo]['correct'] = 'T'
+          break
   except:
     pass
 

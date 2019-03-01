@@ -20,6 +20,8 @@ def main_timeprof(folder, filename):
     tree.fit_ds(dataset)
   def dtwithlc_timeprof(tree, dataset):
     tree.fit_ds(dataset)
+  def baseline_timeprof(tree, dataset):
+    tree.fit_ds(dataset)
 
   ds = parse('datasets/%s' % folder, filename)
   #ds.dump()
@@ -30,11 +32,16 @@ def main_timeprof(folder, filename):
   print('sklearn_correct: %s' % sk.is_correct_ds(ds))
   #sk.graph('%s_SK' % filename, png=True)
 
-  lc = DT_linear(Split_entropy())
+  bl = DT_linear(Split_entropy(), use_lc=False)
+  baseline_timeprof(bl, ds)
+  print('baseline_nodes: %d' % bl.inner_and_lc_nodes())
+  print('baseline_correct: %s' % bl.is_correct_ds(ds))
+  #bl.graph('%s_BL' % filename, png=True)
+
+  lc = DT_linear(Split_entropy(), use_lc=True)
   dtwithlc_timeprof(lc, ds)
   print('dtwithlc_nodes: %d' % lc.inner_and_lc_nodes())
-  corr = lc.is_correct_ds(ds)
-  print('dtwithlc_correct: %s' % corr)
+  print('dtwithlc_correct: %s' % lc.is_correct_ds(ds))
   #lc.graph('%s_LC' % filename, png=True)
 
   #assert(False and 'Disable assertions (python -O) for timeprofiling')

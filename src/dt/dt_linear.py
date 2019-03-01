@@ -15,9 +15,10 @@ import node_types
 
 class DT_linear(Decision_tree):
   'Subclass that uses linear classifiers at the leaves'
-  def __init__(self, split_criterion):
+  def __init__(self, split_criterion, use_lc=True):
     super(DT_linear, self).__init__()
     self.split_criterion = split_criterion
+    self.use_lc = use_lc
 
 
   def fit(self, dataset):
@@ -40,7 +41,7 @@ class DT_linear(Decision_tree):
           c.answer = node_types.Answer(answer, answername, c.data.Y.size)
         continue
 
-      if len(c.data.Ynames) == 2:
+      if len(c.data.Ynames) == 2 and self.use_lc:
         # Possible to crate a linear classifier here
         # Conjunction (penalty='l1' loss='squared_hinge' dual=True) not supported
         lc = LinearSVC(penalty='l1', tol=0.000001, C=10000.0,
