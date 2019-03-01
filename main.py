@@ -32,10 +32,10 @@ def main_timeprof(folder, filename):
 
   lc = DT_linear(Split_entropy())
   dtwithlc_timeprof(lc, ds)
-  print('dtwithlc_nodes: %d' % lc.inner_nodes())
+  print('dtwithlc_nodes: %d' % lc.inner_and_lc_nodes())
   corr = lc.is_correct_ds(ds)
   print('dtwithlc_correct: %s' % corr)
-  #lc.graph('%s%s_LC' % ('' if corr else 'BAD_', filename), png=True)
+  #lc.graph('%s_LC' % filename, png=True)
 
   #assert(False and 'Disable assertions (python -O) for timeprofiling')
 

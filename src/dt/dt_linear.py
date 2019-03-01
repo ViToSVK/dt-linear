@@ -25,6 +25,7 @@ class DT_linear(Decision_tree):
     self.Xnames = dataset.Xnames
     self.Ynames = dataset.Ynames
     self.root = Node(dataset, parent=None)
+    self.lc_nodes = 0
 
     que = Queue()
     que.put_nowait(self.root)
@@ -60,6 +61,7 @@ class DT_linear(Decision_tree):
           # Linear classifier is correct, make a leaf node with it
           c.line = node_types.Line(lc, feature_mask, scaler,
                                    list(c.data.Ynames.keys()), c.data.Y.size)
+          self.lc_nodes += 1
           continue
 
       # We need to split here

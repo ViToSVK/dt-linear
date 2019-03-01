@@ -169,6 +169,7 @@ class Split_entropy:
           b_eq = False
 
     # Done; return the best predicate
+    assert(b_eq is not None)
     assert(b_pos >= 0)
     assert(b_pos < data.Xnames.size)
     return Predicate(fname=data.Xnames[b_pos], fpos=b_pos,

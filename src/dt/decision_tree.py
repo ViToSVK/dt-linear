@@ -9,6 +9,7 @@ class Decision_tree:
   def __init__(self):
     self.root = None
     self.nodes = -1
+    self.lc_nodes = -1
     self.Xnames = None
     self.Ynames = None
 
@@ -83,7 +84,8 @@ class Decision_tree:
       raise Exception('Tree is not built yet, can not create graph')
     if not os.path.exists('results/dot'):
       os.makedirs('results/dot')
-    f = open('results/dot/%s.dot' % filename,'w')
+    fname = filename.replace('.arff', '').replace('.prism', '')
+    f = open('results/dot/%s.dot' % fname,'w')
     f.write('digraph DecisionTree {\n')
     f.write(Decision_tree.graphhelp(self.root))
     f.write('}\n')
@@ -92,8 +94,8 @@ class Decision_tree:
       if not os.path.exists('results/png'):
         os.makedirs('results/png')
       subprocess.check_call(['dot', '-Tpng', '-o',
-                             'results/png/%s.png' % filename,
-                             'results/dot/%s.dot' % filename])
+                             'results/png/%s.png' % fname,
+                             'results/dot/%s.dot' % fname])
 
 
   def inner_nodes(self):
@@ -104,4 +106,8 @@ class Decision_tree:
       return 0
     assert(nc % 2 == 1) # nc = inner + leaves = 2 * inner + 1
     return (nc - 1) // 2
+
+
+  def inner_and_lc_nodes(self):
+    return self.inner_nodes() + self.lc_nodes
 

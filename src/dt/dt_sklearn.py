@@ -70,15 +70,16 @@ class DT_sklearn:
       raise Exception('Tree is not built yet, can not create graph')
     if not os.path.exists('results/dot'):
       os.makedirs('results/dot')
+    fname = filename.replace('.arff', '').replace('.prism', '')
     dot_data = tree.export_graphviz(
-    self.dt, out_file='results/dot/%s.dot' % filename,
+    self.dt, out_file='results/dot/%s.dot' % fname,
     feature_names=self.Xnames, class_names=self.Ynames, rounded=True)
     if png:
       if not os.path.exists('results/png'):
         os.makedirs('results/png')
       subprocess.check_call(['dot', '-Tpng', '-o',
-                             'results/png/%s.png' % filename,
-                             'results/dot/%s.dot' % filename])
+                             'results/png/%s.png' % fname,
+                             'results/dot/%s.dot' % fname])
 
 
   def inner_nodes(self):
