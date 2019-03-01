@@ -19,6 +19,7 @@ class Split_entropy:
       Ypossibilities.append(idx)
       if idx < min_y:
         min_y = idx
+    assert(min_y < 31337)
 
     # For each equality predicate:
     # #sat; #sat&y==k; #unsat&y==k
@@ -148,9 +149,9 @@ class Split_entropy:
 
     for (pos, val) in eq_s:
       ent = get_ent(pos, val, equality=True)
-      if ent is not None and (ent < cur_ent + self.EPSILON):
+      if ent is not None:
         assert(ent >= 0.)
-        if b_eq is None or (b_ent - ent > self.EPSILON):
+        if b_ent - ent > self.EPSILON:
           # New best
           b_ent = ent
           b_pos = pos
@@ -159,14 +160,65 @@ class Split_entropy:
 
     for (pos, val) in in_s:
       ent = get_ent(pos, val, equality=False)
-      if ent is not None and (ent < cur_ent + self.EPSILON):
+      if ent is not None:
         assert(ent >= 0.)
-        if b_eq is None or (b_ent - ent > self.EPSILON):
+        if b_ent - ent > self.EPSILON:
           # New best
           b_ent = ent
           b_pos = pos
           b_val = val
           b_eq = False
+
+    def get_heur(pos, val, equality):
+      # Compute heuristic score after this split
+      sat = eq_s if equality else in_s
+      sat_y = eq_s_y if equality else in_s_y
+      uns_y = eq_u_y if equality else in_u_y
+
+      sat_ALL = sat[(pos, val)]
+      if sat_ALL == 0 or sat_ALL == data.X.shape[0]:
+        return None  # Useless predicate
+      unsat_ALL = data.X.shape[0] - sat_ALL
+      # Collect statistics
+      sat_MINY = sat_ALL
+      sat_OTHERS = 0
+      unsat_MINY = unsat_ALL
+      unsat_OTHERS = 0
+      for _, sY in sat_y[(pos, val)].items():
+        assert(sY >= 0)
+        sat_MINY -= sY
+      for _, uY in uns_y[(pos, val)].items():
+        assert(uY >= 0)
+        unsat_MINY -= uY
+      assert(sat_MINY >= 0 and unsat_MINY >= 0)
+      # Get the score
+      s_1 = (sat_MINY / float(sat_ALL)) + (unsat_OTHERS / float(unsat_ALL))
+      s_2 = (unsat_MINY / float(unsat_ALL)) + (sat_OTHERS / float(sat_ALL))
+      return max(s_1, s_2)
+
+    if (b_eq is None):
+      # Predicates have 0 IG, use TACAS heuristic
+      for (pos, val) in eq_s:
+        heur = get_heur(pos, val, equality=True)
+        if heur is not None:
+          assert(heur >= 0.)
+          if b_eq is None or b_ent - heur > self.EPSILON:
+            # New best
+            b_ent = heur
+            b_pos = pos
+            b_val = val
+            b_eq = True
+
+      for (pos, val) in in_s:
+        heur = get_heur(pos, val, equality=False)
+        if heur is not None:
+          assert(heur >= 0.)
+          if b_eq is None or b_ent - heur > self.EPSILON:
+            # New best
+            b_ent = heur
+            b_pos = pos
+            b_val = val
+            b_eq = False
 
     # Done; return the best predicate
     assert(b_eq is not None)
