@@ -60,7 +60,7 @@ def all_plot(stats, x_algo, y_algo, plotname):
   l = stats[x_algo].size
   assert(l == stats[y_algo].size)
   m = max(stats['%s_max' % x_algo], stats['%s_max' % y_algo])
-  plt.figure(num=None, figsize=(15, 6), dpi=150, facecolor='w', edgecolor='k')
+  fig = plt.figure(num=None, figsize=(15, 6), dpi=150, facecolor='w', edgecolor='k')
   ind = np.lexsort((stats[x_algo], stats[y_algo])) # first by y_algo
   plt.scatter(range(l), [stats[x_algo][i] for i in ind],
               color='b', edgecolor='black', linewidth=0.4, alpha=1.)
@@ -82,10 +82,12 @@ def all_plot(stats, x_algo, y_algo, plotname):
     os.makedirs('results/plots')
   plt.savefig('results/plots/%s_all_plot_%s_%s.png' %
               (plotname, x_algo, y_algo), bbox_inches='tight')
+  plt.clf()
+  plt.close(fig)
 
 
 def versus_plot(stats, x_algo, y_algo, plotname):
-  plt.figure(num=None, figsize=(12, 6), dpi=150, facecolor='w', edgecolor='k')
+  fig = plt.figure(num=None, figsize=(12, 6), dpi=150, facecolor='w', edgecolor='k')
   plt.scatter(stats[x_algo], stats[y_algo],
               color='b', edgecolor='black', linewidth=0.6, alpha=0.8)
   plt.plot([0, 100000], [0, 100000], color='r', linewidth=2.0, alpha=0.4)
@@ -98,12 +100,14 @@ def versus_plot(stats, x_algo, y_algo, plotname):
     os.makedirs('results/plots')
   plt.savefig('results/plots/%s_vs_plot_%s_%s.png' %
               (plotname, x_algo, y_algo), bbox_inches='tight')
+  plt.clf()
+  plt.close(fig)
 
 
 def ratio_plot(stats, x_algo, y_algo, plotname):
   l = stats[x_algo].size
   assert(l == stats[y_algo].size)
-  plt.figure(num=None, figsize=(12, 6), dpi=150, facecolor='w', edgecolor='k')
+  fig = plt.figure(num=None, figsize=(12, 6), dpi=150, facecolor='w', edgecolor='k')
   plt.clf()
   plt.scatter(range(l), stats[y_algo] / stats[x_algo],
               color='b', edgecolor='black', linewidth=0.6, alpha=0.8)
@@ -121,6 +125,8 @@ def ratio_plot(stats, x_algo, y_algo, plotname):
     os.makedirs('results/plots')
   plt.savefig('results/plots/%s_ratio_plot_%s_%s.png' %
               (plotname, x_algo, y_algo), bbox_inches='tight')
+  plt.clf()
+  plt.close(fig)
 
 
 def main():
