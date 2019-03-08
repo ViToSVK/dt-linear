@@ -1,6 +1,7 @@
 # Datasets
 *.arff
 *.prism
+*.iostr
 
 # Results
 results/*/*.dot

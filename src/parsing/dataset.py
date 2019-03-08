@@ -2,11 +2,11 @@
 
 class Dataset:
   def __init__(self, X, Y, Xnames, Xranges, Ynames):
-    self.X = X
-    self.Y = Y
-    self.Xnames = Xnames
-    self.Xranges = Xranges
-    self.Ynames = Ynames
+    self.X = X  # numpy2D(float)
+    self.Y = Y  # numpy1D(int)
+    self.Xnames = Xnames  # list[string]
+    self.Xranges = Xranges  # list[int-lowerbound,int-upperbound]
+    self.Ynames = Ynames  # map[string->int]
 
 
   def dump(self):

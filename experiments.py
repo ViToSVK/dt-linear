@@ -172,7 +172,8 @@ def run_all():
 
   for filename in sorted(os.listdir('datasets/%s' % sys.argv[1])):
     if ('.arff' in filename and 'games' in sys.argv[1]) or (
-        '.prism' in filename and 'mdps' in sys.argv[1]):
+        '.prism' in filename and 'mdps' in sys.argv[1]) or (
+        '.iostr' in filename and 'mdps' in sys.argv[1]):
       print(filename)
       run_one(sys.argv[1], filename)
 
