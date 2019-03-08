@@ -56,6 +56,19 @@ def collect_stats(filename):
   return stats
 
 
+def join_stats(stats_list):
+  res = {'names': np.array([])}
+  for algo in ALGOS:
+    res[algo] = np.array([])
+    res['%s_max' % algo] = 1
+  for stats in stats_list:
+    res['names'] = np.concatenate((res['names'], stats['names']))
+    for algo in ALGOS:
+      res[algo] = np.concatenate((res[algo], stats[algo]))
+      res['%s_max' % algo] = max(res['%s_max' % algo], stats['%s_max' % algo])
+  return res
+
+
 def all_plot(stats, x_algo, y_algo, plotname):
   l = stats[x_algo].size
   assert(l == stats[y_algo].size)
@@ -112,11 +125,12 @@ def ratio_plot(stats, x_algo, y_algo, plotname):
   plt.scatter(range(l), stats[y_algo] / stats[x_algo],
               color='b', edgecolor='black', linewidth=0.6, alpha=0.8)
   plt.plot([-10, 100000], [1, 1], color='r', linewidth=4.0, alpha=0.6)
-  plt.ylim([0.001, 3.])
+  plt.ylim([min(0.05, min(stats[y_algo] / stats[x_algo])),
+            max(1.15, max(stats[y_algo] / stats[x_algo]))])
   plt.xlim([-(l-1) * 0.007, (l-1) * 1.007])
   ax = plt.gca()
-  ax.set_yscale('log', basey=np.e)
-  ticks = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1., 2., 3.]
+  #ax.set_yscale('log', basey=np.e)
+  ticks = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1., 1.1]
   ax.set_yticks(ticks)
   ax.set_yticklabels(ticks)
   plt.xlabel('Benchmark number', fontsize=18)
@@ -129,14 +143,7 @@ def ratio_plot(stats, x_algo, y_algo, plotname):
   plt.close(fig)
 
 
-def main():
-  if not os.path.isdir('results/reports'):
-    return
-  for filename in sorted(os.listdir('results/reports')):
-    if 'report_' in filename and '.txt' in filename:
-      print(filename)
-      stats = collect_stats(filename)
-      plotname = filename.replace('report_', '').replace('.txt', '')
+def create_plots(stats, plotname):
       all_plot(stats, 'baseline', 'dtwithlc', plotname)
       versus_plot(stats, 'baseline', 'dtwithlc', plotname)
       ratio_plot(stats, 'baseline', 'dtwithlc', plotname)
@@ -144,9 +151,23 @@ def main():
       versus_plot(stats, 'sklearn', 'dtwithlc', plotname)
       ratio_plot(stats, 'sklearn', 'dtwithlc', plotname)
 
+
+def main():
+  if not os.path.isdir('results/reports'):
+    return
+
+  stats_prism = []
+  for filename in sorted(os.listdir('results/reports')):
+    if 'report_' in filename and '.txt' in filename:
+      print(filename)
+      if ('prism' in filename):
+        stats_prism.append(collect_stats(filename))
+      else:
+        stats = collect_stats(filename)
+        plotname = filename.replace('report_', '').replace('.txt', '')
+        create_plots(stats, plotname)
+  if (len(stats_prism) > 0):
+    create_plots(join_stats(stats_prism), 'mdps_prism')
+
 main()
-
-
-
-
 
