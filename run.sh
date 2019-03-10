@@ -6,3 +6,5 @@ python experiments.py games_wash debug replace
 python experiments.py mdps_coBuchiAS_randomltl debug replace
 python experiments.py mdps_prism_consensus debug replace
 python experiments.py mdps_prism_csma debug replace
+python experiments.py mdps_prism_leader debug replace
+python experiments.py mdps_prism_mer debug replace
