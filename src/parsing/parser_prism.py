@@ -8,6 +8,15 @@ from dataset import Dataset
 def parse_prism(folder, filename):
   assert('mdps' in folder)
   assert('.prism' in filename)
+
+  def nondigits_to_float(token):
+    if (token == 'false'):
+      return 0.0
+    if (token == 'true'):
+      return 1.0
+    assert(token[0] == '-')
+    return -(float(token[1:]))
+
   data = False
   X = []
   Y = []
@@ -25,7 +34,8 @@ def parse_prism(folder, filename):
       [smp, cl] = line.split(':')
       assert(smp[0] == '(' and smp[-1] == ')')
       smp = smp[1:-1]
-      sample = [float(e) for e in smp.split(',')]
+      sample = [float(e) if e.isdigit() else nondigits_to_float(e)
+                for e in smp.split(',')]
       cl = cl.strip()
       if cl not in Ynames:
         pos = len(Ynames)
