@@ -10,8 +10,8 @@ import os
 # Algorithms
 ALGOS = {'sklearn': 'Scikit-learn',
          'baseline': 'Baseline',
-         'dtwithlc': 'LC_entropy',
-         'dtauclc': 'LC_auc',
+         'lc_ent': 'LC_entropy',
+         'lc_auc': 'LC_auc',
         }
 
 
@@ -104,9 +104,9 @@ def all_plot(stats, plotname, x_algo, y_algo, z_algo=None):
 
   ax = plt.gca()
   ax.set_yscale('log', basey=np.e)
-  y_ticks = np.logspace(np.log(mi), np.log(ma), num=10, base=np.e)
+  y_ticks = np.ceil(np.logspace(np.log(mi), np.log(ma), num=10, base=np.e))
   ax.set_yticks(y_ticks)
-  ax.set_yticklabels(np.ceil(y_ticks).astype(int))
+  ax.set_yticklabels(y_ticks.astype(int))
   plt.xlabel('Benchmark number', fontsize=18)
   plt.ylabel('Decision tree size', fontsize=18)
 
@@ -152,7 +152,7 @@ def ratio_plot(stats, plotname, x_algo, y_algo):
               color='b', edgecolor='black', linewidth=0.6, alpha=0.8)
   plt.plot([-10, 100000], [1, 1], color='r', linewidth=4.0, alpha=0.6)
   plt.ylim([min(0.05, min(stats[y_algo] / stats[x_algo])),
-            max(1.15, max(stats[y_algo] / stats[x_algo]))])
+            max(1.15, max(stats[y_algo] / stats[x_algo]) + 0.02)])
   plt.xlim([-(l-1) * 0.007, (l-1) * 1.007])
   ax = plt.gca()
   #ax.set_yscale('log', basey=np.e)
@@ -170,12 +170,12 @@ def ratio_plot(stats, plotname, x_algo, y_algo):
 
 
 def create_plots(stats, plotname):
-  all_plot(stats, plotname, 'baseline', 'dtwithlc', 'dtauclc')
-  versus_plot(stats, plotname, 'baseline', 'dtauclc')  # dtwithlc
-  ratio_plot(stats, plotname, 'baseline', 'dtauclc')  # dtwithlc
-  #all_plot(stats, plotname, 'sklearn', 'dtwithlc', 'dtauclc')
-  #versus_plot(stats, plotname, 'sklearn', 'dtwithlc')
-  #ratio_plot(stats, plotname, 'sklearn', 'dtwithlc')
+  all_plot(stats, plotname, 'baseline', 'lc_ent', 'lc_auc')
+  versus_plot(stats, plotname, 'baseline', 'lc_auc')  # lc_ent
+  ratio_plot(stats, plotname, 'baseline', 'lc_auc')  # lc_ent
+  #all_plot(stats, plotname, 'sklearn', 'lc_ent', 'lc_auc')
+  #versus_plot(stats, plotname, 'sklearn', 'lc_auc')
+  #ratio_plot(stats, plotname, 'sklearn', 'lc_auc')
 
 
 def main():

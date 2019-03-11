@@ -8,14 +8,14 @@ from threading import Timer
 
 # Run with assertions?
 ASSERTIONS = True
-# Timeout in seconds (4 hours)
-TIMEOUT = 4*60*60
+# Timeout in seconds (8 hours)
+TIMEOUT = 8*60*60
 # A flag that tracks whether a timeout occurred
 TIMED_OUT = False
 # Path to the report file - set up from sys.argv[1]
 REPORT_PATH = None
 # Algorithms
-ALGOS = ['sklearn', 'baseline', 'dtwithlc', 'dtauclc']
+ALGOS = ['sklearn', 'baseline', 'lc_ent', 'lc_auc']
 
 
 def pretty_time(s):
