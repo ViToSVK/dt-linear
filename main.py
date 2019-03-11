@@ -13,12 +13,15 @@ from parser import parse_timeprof as parse
 from dt_sklearn import DT_sklearn
 from dt_linear import DT_linear
 from entropy import Split_entropy
+from auc import Split_auc
 
 
 def main_timeprof(folder, filename):
   def sklearn_timeprof(tree, dataset):
     tree.fit_ds(dataset)
   def dtwithlc_timeprof(tree, dataset):
+    tree.fit_ds(dataset)
+  def dtauclc_timeprof(tree, dataset):
     tree.fit_ds(dataset)
   def baseline_timeprof(tree, dataset):
     tree.fit_ds(dataset)
@@ -43,6 +46,12 @@ def main_timeprof(folder, filename):
   print('dtwithlc_nodes: %d' % lc.inner_and_lc_nodes())
   print('dtwithlc_correct: %s' % lc.is_correct_ds(ds))
   #lc.graph('%s_LC' % filename, png=True)
+
+  auclc = DT_linear(Split_auc(), use_lc=True)
+  dtauclc_timeprof(auclc, ds)
+  print('dtauclc_nodes: %d' % auclc.inner_and_lc_nodes())
+  print('dtauclc_correct: %s' % auclc.is_correct_ds(ds))
+  #auclc.graph('%s_LC_AUC' % filename, png=True)
 
   #assert(False and 'Disable assertions (python -O) for timeprofiling')
 

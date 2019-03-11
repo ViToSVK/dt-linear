@@ -8,7 +8,11 @@ import os
 
 
 # Algorithms
-ALGOS = ['sklearn', 'baseline', 'dtwithlc']
+ALGOS = {'sklearn': 'Scikit-learn',
+         'baseline': 'Baseline',
+         'dtwithlc': 'LC_entropy',
+         'dtauclc': 'LC_auc',
+        }
 
 
 def collect_stats(filename):
@@ -16,6 +20,7 @@ def collect_stats(filename):
   for algo in ALGOS:
     stats[algo] = []
     stats['%s_max' % algo] = 1
+    stats['%s_min' % algo] = 31337
 
   namefollows = False
   disregard = True
@@ -30,6 +35,8 @@ def collect_stats(filename):
           stats[algo].append(c[algo])
           if c[algo] > stats['%s_max' % algo]:
             stats['%s_max' % algo] = c[algo]
+          if c[algo] < stats['%s_min' % algo]:
+            stats['%s_min' % algo] = c[algo]
       namefollows = True
       continue
     if namefollows:
@@ -61,6 +68,7 @@ def join_stats(stats_list):
   for algo in ALGOS:
     res[algo] = np.array([])
     res['%s_max' % algo] = 1
+    res['%s_min' % algo] = 1
   for stats in stats_list:
     res['names'] = np.concatenate((res['names'], stats['names']))
     for algo in ALGOS:
@@ -69,28 +77,46 @@ def join_stats(stats_list):
   return res
 
 
-def all_plot(stats, x_algo, y_algo, plotname):
+def all_plot(stats, plotname, x_algo, y_algo, z_algo=None):
   l = stats[x_algo].size
   assert(l == stats[y_algo].size)
-  m = max(stats['%s_max' % x_algo], stats['%s_max' % y_algo])
+  assert(z_algo is None or l == stats[z_algo].size)
+
   fig = plt.figure(num=None, figsize=(15, 6), dpi=150, facecolor='w', edgecolor='k')
   ind = np.lexsort((stats[x_algo], stats[y_algo])) # first by y_algo
   plt.scatter(range(l), [stats[x_algo][i] for i in ind],
               color='b', edgecolor='black', linewidth=0.4, alpha=1.)
   plt.scatter(range(l), [stats[y_algo][i] for i in ind],
               color='r', edgecolor='black', linewidth=0.4, alpha=1.)
-  plt.ylim([0.9, m * 1.1])
+  if z_algo is not None:
+    plt.scatter(range(l), [stats[z_algo][i] for i in ind],
+                color='g', edgecolor='black', linewidth=0.4, alpha=1.)
+
+  ma = max(stats['%s_max' % x_algo], stats['%s_max' % y_algo])
+  if z_algo is not None:
+    ma = max(ma, stats['%s_max' % z_algo])
+  mi = min(stats['%s_min' % x_algo], stats['%s_min' % y_algo])
+  if z_algo is not None:
+    mi = min(mi, stats['%s_min' % z_algo])
+
+  plt.ylim([0.9 if mi == 1 else (mi - 1.), ma * 1.1])
   plt.xlim([-(l-1) * 0.007, (l-1) * 1.007])
+
   ax = plt.gca()
   ax.set_yscale('log', basey=np.e)
-  y_ticks = np.logspace(np.log(1.), np.log(m), num=10, base=np.e)
+  y_ticks = np.logspace(np.log(mi), np.log(ma), num=10, base=np.e)
   ax.set_yticks(y_ticks)
   ax.set_yticklabels(np.ceil(y_ticks).astype(int))
   plt.xlabel('Benchmark number', fontsize=18)
   plt.ylabel('Decision tree size', fontsize=18)
-  blue_patch = mpatches.Patch(color='blue', label=x_algo)
-  red_patch = mpatches.Patch(color='red', label=y_algo)
-  plt.legend(handles=[blue_patch, red_patch], loc=4)
+
+  patches = []
+  patches.append(mpatches.Patch(color='blue', label=ALGOS[x_algo]))
+  patches.append(mpatches.Patch(color='red', label=ALGOS[y_algo]))
+  if z_algo is not None:
+    patches.append(mpatches.Patch(color='green', label=ALGOS[z_algo]))
+  plt.legend(handles=patches, loc=4)
+
   if not os.path.exists('results/plots'):
     os.makedirs('results/plots')
   plt.savefig('results/plots/%s_all_plot_%s_%s.png' %
@@ -99,7 +125,7 @@ def all_plot(stats, x_algo, y_algo, plotname):
   plt.close(fig)
 
 
-def versus_plot(stats, x_algo, y_algo, plotname):
+def versus_plot(stats, plotname, x_algo, y_algo):
   fig = plt.figure(num=None, figsize=(12, 6), dpi=150, facecolor='w', edgecolor='k')
   plt.scatter(stats[x_algo], stats[y_algo],
               color='b', edgecolor='black', linewidth=0.6, alpha=0.8)
@@ -107,8 +133,8 @@ def versus_plot(stats, x_algo, y_algo, plotname):
   plt.plot([0, 100000], [0, 10000], color='r', linewidth=2.0, alpha=0.2)
   plt.xlim([-1, stats['%s_max' % x_algo] * 1.01])
   plt.ylim([-1, stats['%s_max' % y_algo] * 1.015])
-  plt.xlabel('%s size' % x_algo, fontsize=18)
-  plt.ylabel('%s size' % y_algo, fontsize=18)
+  plt.xlabel('%s size' % ALGOS[x_algo], fontsize=18)
+  plt.ylabel('%s size' % ALGOS[y_algo], fontsize=18)
   if not os.path.exists('results/plots'):
     os.makedirs('results/plots')
   plt.savefig('results/plots/%s_vs_plot_%s_%s.png' %
@@ -117,7 +143,7 @@ def versus_plot(stats, x_algo, y_algo, plotname):
   plt.close(fig)
 
 
-def ratio_plot(stats, x_algo, y_algo, plotname):
+def ratio_plot(stats, plotname, x_algo, y_algo):
   l = stats[x_algo].size
   assert(l == stats[y_algo].size)
   fig = plt.figure(num=None, figsize=(12, 6), dpi=150, facecolor='w', edgecolor='k')
@@ -134,7 +160,7 @@ def ratio_plot(stats, x_algo, y_algo, plotname):
   ax.set_yticks(ticks)
   ax.set_yticklabels(ticks)
   plt.xlabel('Benchmark number', fontsize=18)
-  plt.ylabel('%s/%s size ratio' % (y_algo, x_algo), fontsize=18)
+  plt.ylabel('%s/%s size ratio' % (ALGOS[y_algo], ALGOS[x_algo]), fontsize=18)
   if not os.path.exists('results/plots'):
     os.makedirs('results/plots')
   plt.savefig('results/plots/%s_ratio_plot_%s_%s.png' %
@@ -144,12 +170,12 @@ def ratio_plot(stats, x_algo, y_algo, plotname):
 
 
 def create_plots(stats, plotname):
-      all_plot(stats, 'baseline', 'dtwithlc', plotname)
-      versus_plot(stats, 'baseline', 'dtwithlc', plotname)
-      ratio_plot(stats, 'baseline', 'dtwithlc', plotname)
-      all_plot(stats, 'sklearn', 'dtwithlc', plotname)
-      versus_plot(stats, 'sklearn', 'dtwithlc', plotname)
-      ratio_plot(stats, 'sklearn', 'dtwithlc', plotname)
+  all_plot(stats, plotname, 'baseline', 'dtwithlc', 'dtauclc')
+  versus_plot(stats, plotname, 'baseline', 'dtauclc')  # dtwithlc
+  ratio_plot(stats, plotname, 'baseline', 'dtauclc')  # dtwithlc
+  #all_plot(stats, plotname, 'sklearn', 'dtwithlc', 'dtauclc')
+  #versus_plot(stats, plotname, 'sklearn', 'dtwithlc')
+  #ratio_plot(stats, plotname, 'sklearn', 'dtwithlc')
 
 
 def main():
