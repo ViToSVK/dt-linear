@@ -22,26 +22,25 @@ def parse_prism(folder, filename):
   Y = []
   Xnames = []
   Xranges = []
-  Ynames = {}
+  Ynames = {'no': 0, 'yes': 1}
+  Actions = {}  # map string(action name)->int(action id)
+  ActionIDtoName = {}  # map int(action id)->string(action name)
+
+  # First scan to collect actions played, names and ranges
   for line in open('%s/%s' % (folder, filename), 'r'):
     if line.startswith('#'):
       continue # first line
     if line.startswith('\n'):
       break # we have finished parsing
     if line.startswith('('):
-      # sample
+      # sample - get action played
       assert(len(Xnames) and len(Xranges))
-      [smp, cl] = line.split(':')
-      assert(smp[0] == '(' and smp[-1] == ')')
-      smp = smp[1:-1]
-      sample = [float(e) if e.isdigit() else nondigits_to_float(e)
-                for e in smp.split(',')]
-      cl = cl.strip()
-      if cl not in Ynames:
-        pos = len(Ynames)
-        Ynames[cl] = pos
-      Y.append(Ynames[cl])
-      X.append(sample)
+      [_, act] = line.split(':')
+      act = act.strip()
+      if act not in Actions:
+        pos = len(Actions)
+        Actions[act] = pos
+        ActionIDtoName[pos] = act
     else:
       assert(not len(Xnames) and not len(Xranges))
       namesRanges = line.split(']')[:-1]
@@ -52,6 +51,42 @@ def parse_prism(folder, filename):
           name = name[name.index(';')+1:]
         Xnames.append(name[:-1])
         Xranges.append([int(e) for e in rnge.split(',')])
+  # Add action feature
+  Xnames.append('Action')
+  assert(len(Actions) == len(ActionIDtoName))
+  for action in Actions:
+    assert(ActionIDtoName[Actions[action]] == action)
+  assert(len(Actions) >= 2)
+  Xranges.append([0, len(Actions) - 1])
+  Xineqforbidden = set({len(Xnames) - 1})
+
+  # Second scan to collect samples
+  for line in open('%s/%s' % (folder, filename), 'r'):
+    if line.startswith('#'):
+      continue # first line
+    if line.startswith('\n'):
+      break # we have finished parsing
+    if line.startswith('('):
+      # sample
+      assert(len(Xnames) and len(Xranges))
+      [smp, act] = line.split(':')
+      assert(smp[0] == '(' and smp[-1] == ')')
+      smp = smp[1:-1]
+      sample = [float(e) if e.isdigit() else nondigits_to_float(e)
+                for e in smp.split(',')]
+      act = act.strip()
+      assert(act in Actions)
+      sample.append(float(Actions[act]))
+      Y.append(Ynames['yes'])
+      X.append(sample)
+      # copies for other actions played
+      for badact in Actions:
+        if (badact != act):
+          badsam = sample.copy()
+          badsam[-1] = float(Actions[badact])
+          X.append(badsam)
+          Y.append(Ynames['no'])
+
   return Dataset(np.array(X), np.array(Y), np.array(Xnames),
-                 np.array(Xranges), Ynames)
+                 np.array(Xranges), Ynames, Xineqforbidden, ActionIDtoName)
 

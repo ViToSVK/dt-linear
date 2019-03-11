@@ -19,11 +19,11 @@ from auc import Split_auc
 def main_timeprof(folder, filename):
   def sklearn_timeprof(tree, dataset):
     tree.fit_ds(dataset)
-  def dtwithlc_timeprof(tree, dataset):
-    tree.fit_ds(dataset)
-  def dtauclc_timeprof(tree, dataset):
-    tree.fit_ds(dataset)
   def baseline_timeprof(tree, dataset):
+    tree.fit_ds(dataset)
+  def lc_ent_timeprof(tree, dataset):
+    tree.fit_ds(dataset)
+  def lc_auc_timeprof(tree, dataset):
     tree.fit_ds(dataset)
 
   ds = parse('datasets/%s' % folder, filename)
@@ -41,17 +41,17 @@ def main_timeprof(folder, filename):
   print('baseline_correct: %s' % bl.is_correct_ds(ds))
   #bl.graph('%s_BL' % filename, png=True)
 
-  lc = DT_linear(Split_entropy(), use_lc=True)
-  dtwithlc_timeprof(lc, ds)
-  print('dtwithlc_nodes: %d' % lc.inner_and_lc_nodes())
-  print('dtwithlc_correct: %s' % lc.is_correct_ds(ds))
-  #lc.graph('%s_LC' % filename, png=True)
+  lc_ent = DT_linear(Split_entropy(), use_lc=True)
+  lc_ent_timeprof(lc_ent, ds)
+  print('lc_ent_nodes: %d' % lc_ent.inner_and_lc_nodes())
+  print('lc_ent_correct: %s' % lc_ent.is_correct_ds(ds))
+  #lc_ent.graph('%s_LC_ENT' % filename, png=True)
 
-  auclc = DT_linear(Split_auc(), use_lc=True)
-  dtauclc_timeprof(auclc, ds)
-  print('dtauclc_nodes: %d' % auclc.inner_and_lc_nodes())
-  print('dtauclc_correct: %s' % auclc.is_correct_ds(ds))
-  #auclc.graph('%s_LC_AUC' % filename, png=True)
+  lc_auc = DT_linear(Split_auc(), use_lc=True)
+  lc_auc_timeprof(lc_auc, ds)
+  print('lc_auc_nodes: %d' % lc_auc.inner_and_lc_nodes())
+  print('lc_auc_correct: %s' % lc_auc.is_correct_ds(ds))
+  #lc_auc.graph('%s_LC_AUC' % filename, png=True)
 
   #assert(False and 'Disable assertions (python -O) for timeprofiling')
 

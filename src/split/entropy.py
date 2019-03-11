@@ -55,15 +55,17 @@ class Split_entropy:
           eq_s[(i, val)] = 0
           eq_s_y[(i, val)] = {}
           eq_u_y[(i, val)] = {}
-          in_s[(i, val)] = 0
-          in_s_y[(i, val)] = {}
-          in_u_y[(i, val)] = {}
+          if (i not in data.Xineqforbidden):
+            in_s[(i, val)] = 0
+            in_s_y[(i, val)] = {}
+            in_u_y[(i, val)] = {}
           for y in Ypossibilities:
             if y != min_y:
               eq_s_y[(i, val)][y] = 0
               eq_u_y[(i, val)][y] = 0
-              in_s_y[(i, val)][y] = 0
-              in_u_y[(i, val)][y] = 0
+              if (i not in data.Xineqforbidden):
+                in_s_y[(i, val)][y] = 0
+                in_u_y[(i, val)][y] = 0
 
     # Predicates collected
     # Go through the dataset and collect the statistics
@@ -224,6 +226,11 @@ class Split_entropy:
     assert(b_eq is not None)
     assert(b_pos >= 0)
     assert(b_pos < data.Xnames.size)
+    numname = None
+    if (data.Xnames[b_pos] == 'Action'):
+      assert(b_eq)
+      assert(b_val in data.ActionIDtoName)
+      numname = data.ActionIDtoName[b_val]
     return Predicate(fname=data.Xnames[b_pos], fpos=b_pos,
-                     equality=b_eq, number=b_val)
+                     equality=b_eq, number=b_val, numberName=numname)
 

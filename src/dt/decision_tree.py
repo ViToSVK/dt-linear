@@ -36,7 +36,7 @@ class Decision_tree:
       c = self.root
       while not c.is_leaf():
         assert(c.is_predicate())
-        if c.predicate.evaluate(sample):
+        if c.predicate.evaluate_sample(sample):
           c = c.childSAT
         else:
           c = c.childUNSAT

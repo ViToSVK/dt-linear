@@ -5,20 +5,25 @@ import numpy as np
 
 class Predicate:
   'Equality or inequality predicate'
-  def __init__(self, fname, fpos, equality, number):
+  def __init__(self, fname, fpos, equality, number, numberName = None):
     assert(fpos >= 0)
     self.fpos = fpos
     self.equality = equality
     self.number = number
-    self.name = '%s %s %d' % (fname, ('=' if equality else '<'), number)
+    self.name = '%s %s %s' % (fname, ('=' if equality else '<'),
+                              str(number) if numberName is None else numberName)
 
 
-  def evaluate(self, sample):
+  def evaluate_sample(self, sample):
     assert(self.fpos < len(sample))
     if self.equality:
-      return (sample[self.fpos] == self.number)
+      return (sample[self.fpos] == float(self.number))
     else:
-      return (sample[self.fpos] < self.number)
+      return (sample[self.fpos] < float(self.number))
+
+
+  def evaluate_matrix(self, X):
+    return self.evaluate_sample(np.transpose(X))
 
 
   def evaluate_ranges(self, X):
@@ -26,7 +31,7 @@ class Predicate:
     sat_min, sat_max, unsat_min, unsat_max = None, None, None, None
     mask = []
     for sample_float in X:
-      res = self.evaluate(sample_float)
+      res = self.evaluate_sample(sample_float)
       mask.append(res)
       sample = sample_float.astype(int)
       if res:

@@ -27,47 +27,64 @@ class Split_auc:
       assert(ran[0] <= ran[1])
       if (ran[1] - ran[0] == 1):
         self.split_score(data, i, ran[1], True)  # [0,1] --> =1
-      """
       elif (ran[1] - ran[0] > 1):
         # [0,2] --> =0 =1 =2 <1 <2
         self.split_score(data, i, ran[1], True)
         for val in range(ran[0]+1, ran[1]+1):
           self.split_score(data, i, val, True)
-          self.split_score(data, i, val, False)
-      """
+          if (i not in data.Xineqforbidden):
+            self.split_score(data, i, val, False)
+
+    # Done; return the best predicate
     assert(self.b_eq is not None)
+    assert(self.b_pos >= 0)
+    assert(self.b_pos < data.Xnames.size)
+
+    numname = None
+    if (data.Xnames[self.b_pos] == 'Action'):
+      assert(self.b_eq)
+      assert(self.b_val in data.ActionIDtoName)
+      numname = data.ActionIDtoName[self.b_val]
+
     return Predicate(fname=data.Xnames[self.b_pos], fpos=self.b_pos,
-                     equality=self.b_eq, number=self.b_val)
+                     equality=self.b_eq, number=self.b_val, numberName=numname)
 
 
   def split_score(self, data, pos, value, equality):
-    mask = (data.X[:, pos] == value)
-    data0X = data.X[mask]
-    data0Y = data.Y[mask]
-    data1X = data.X[~mask]
-    data1Y = data.Y[~mask]
+    pred = Predicate(fname='', fpos=pos, equality=equality, number=value)
+    mask = (pred.evaluate_matrix(data.X))
+    sat_X = data.X[mask]
+    sat_Y = data.Y[mask]
+    unsat_X = data.X[~mask]
+    unsat_Y = data.Y[~mask]
     clf = LinearRegression()
 
-    area0 = 0
-    if (data0X.size > 0):
-      ysum = np.sum(data0Y)
-      if (ysum == 0 or ysum == data0Y.shape[0]): # only one class present
-        area0 = 1
-      else:
-        clf.fit(data0X, data0Y)
-        area0 = roc_auc_score(y_true=data0Y, y_score=clf.predict(data0X))
+    areaSAT = 0.
+    if (sat_X.size > 0):
+      Ys_present = set()
+      for y in sat_Y:
+        Ys_present.add(y)
+      assert(len(Ys_present) > 0)
+      if (len(Ys_present) == 1):  # only one class present
+        areaSAT = 1.
+      elif (len(Ys_present) == 2):
+        clf.fit(sat_X, sat_Y)
+        areaSAT = roc_auc_score(y_true=sat_Y, y_score=clf.predict(sat_X))
 
-    area1 = 0
-    if (data1X.size > 0):
-      ysum = np.sum(data1Y)
-      if (ysum == 0 or ysum == data1Y.shape[0]): # only one class present
-        area1 = 1
-      else:
-        clf.fit(data1X, data1Y)
-        area1 = roc_auc_score(y_true=data1Y, y_score=clf.predict(data1X))
+    areaUNSAT = 0.
+    if (unsat_X.size > 0):
+      Ys_present = set()
+      for y in unsat_Y:
+        Ys_present.add(y)
+      assert(len(Ys_present) > 0)
+      if (len(Ys_present) == 1):  # only one class present
+        areaUNSAT = 1.
+      elif (len(Ys_present) == 2):
+        clf.fit(unsat_X, unsat_Y)
+        areaUNSAT = roc_auc_score(y_true=unsat_Y, y_score=clf.predict(unsat_X))
 
-    if (area0 + area1 > self.b_score):
-      self.b_score = area0 + area1
+    if (areaSAT + areaUNSAT > self.b_score):
+      self.b_score = areaSAT + areaUNSAT
       self.b_pos = pos
       self.b_val = value
       self.b_eq = equality
