@@ -14,7 +14,7 @@ def parse_iostr(folder, filename):
   Xnames = np.array([])
   Svarno = -1
   Avarno = -1
-  Xranges = []
+  Xdomains = []
   Ynames = {'no': 0, 'yes': 1}
 
   def decimal_to_binary(decimal, length):
@@ -56,7 +56,7 @@ def parse_iostr(folder, filename):
       Xnames = np.append(Xnames, np.array(line.split()))
       assert(Xnames.size == Svarno + Avarno)
       for _ in range(Xnames.size):
-        Xranges.append([0, 1])
+        Xdomains.append(set({0, 1}))
       continue
     if (lineno == 6):
       assert('State-action pairs' in line)
@@ -82,5 +82,5 @@ def parse_iostr(folder, filename):
         Y.append(0)
 
   return Dataset(np.array(X).astype(float), np.array(Y).astype(int),
-                 Xnames, np.array(Xranges), Ynames)
+                 Xnames, Xdomains, Ynames)
 

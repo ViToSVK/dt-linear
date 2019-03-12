@@ -49,9 +49,9 @@ class DT_linear(Decision_tree):
         # Create a mask to only include features that
         # do not contain the same value in all samples
         feature_mask = []
-        for i, rnge in enumerate(c.data.Xranges):
-          assert(rnge[0] <= rnge[1])
-          feature_mask.append(rnge[0] < rnge[1])
+        for i, dom in enumerate(c.data.Xdomains):
+          assert(len(dom) >= 1)
+          feature_mask.append(len(dom) > 1)
         # Create a scaler to transform data before fitting
         scaler = StandardScaler()
         X_transformed = scaler.fit_transform(c.data.X[:,feature_mask])
@@ -67,7 +67,7 @@ class DT_linear(Decision_tree):
 
       # We need to split here
       c.predicate = self.split_criterion.best(c.data)
-      mask, s_Xranges, u_Xranges = c.predicate.evaluate_ranges(c.data.X)
+      mask, s_Xdomains, u_Xdomains = c.predicate.evaluate_domains(c.data.X)
       Ynames_back = {}
       for name, idx in c.data.Ynames.items():
         assert(idx not in Ynames_back)
@@ -83,7 +83,7 @@ class DT_linear(Decision_tree):
           s_Yids.add(y)
           assert(y in Ynames_back and Ynames_back[y] not in s_Ynames)
           s_Ynames[Ynames_back[y]] = y
-      c.childSAT = Node(Dataset(s_X, s_Y, s_Xnames, s_Xranges, s_Ynames,
+      c.childSAT = Node(Dataset(s_X, s_Y, s_Xnames, s_Xdomains, s_Ynames,
                                 c.data.Xineqforbidden.copy(),
                                 c.data.ActionIDtoName.copy(),
                                 c.data.ModuleIDtoName.copy()),
@@ -100,7 +100,7 @@ class DT_linear(Decision_tree):
           u_Yids.add(y)
           assert(y in Ynames_back and Ynames_back[y] not in u_Ynames)
           u_Ynames[Ynames_back[y]] = y
-      c.childUNSAT = Node(Dataset(u_X, u_Y, u_Xnames, u_Xranges, u_Ynames,
+      c.childUNSAT = Node(Dataset(u_X, u_Y, u_Xnames, u_Xdomains, u_Ynames,
                                   c.data.Xineqforbidden.copy(),
                                   c.data.ActionIDtoName.copy(),
                                   c.data.ModuleIDtoName.copy()),

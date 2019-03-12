@@ -12,7 +12,7 @@ def parse_arff(folder, filename):
   X = []
   Y = []
   Xnames = []
-  Xranges = []
+  Xdomains = []
   Ynames = {}
   for line in open('%s/%s' % (folder, filename), 'r'):
     if data:
@@ -31,7 +31,7 @@ def parse_arff(folder, filename):
         label = line.split('\"')[1]
         if label != 'class':
           Xnames.append(label)
-          Xranges.append([0, 1])
+          Xdomains.append(set({0, 1}))
   return Dataset(np.array(X), np.array(Y), np.array(Xnames),
-                 np.array(Xranges), Ynames)
+                 Xdomains, Ynames)
 

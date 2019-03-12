@@ -30,32 +30,28 @@ class Split_entropy:
     in_s, in_s_y, in_u_y = {}, {}, {}
 
     # Collect predicates that will be considered
-    for i, ran in enumerate(data.Xranges):
-      assert(ran[0] <= ran[1])
-      if (ran[1] - ran[0] == 1):
-        # [0,1] --> =1
-        eq_s[(i, ran[1])] = 0
-        eq_s_y[(i, ran[1])] = {}
-        eq_u_y[(i, ran[1])] = {}
+    for i, dom in enumerate(data.Xdomains):
+      assert(len(dom) > 0)
+      if (len(dom) == 2):
+        # {0,1} --> =1
+        # {0,8} --> =8
+        eq_s[(i, max(dom))] = 0
+        eq_s_y[(i, max(dom))] = {}
+        eq_u_y[(i, max(dom))] = {}
         for y in Ypossibilities:
           if y != min_y:
-            eq_s_y[(i, ran[1])][y] = 0
-            eq_u_y[(i, ran[1])][y] = 0
-
-      elif (ran[1] - ran[0] > 1):
-        # [0,2] --> =0 =1 =2 <1 <2
-        eq_s[(i, ran[0])] = 0
-        eq_s_y[(i, ran[0])] = {}
-        eq_u_y[(i, ran[0])] = {}
-        for y in Ypossibilities:
-          if y != min_y:
-            eq_s_y[(i, ran[0])][y] = 0
-            eq_u_y[(i, ran[0])][y] = 0
-        for val in range(ran[0]+1, ran[1]+1):  # ran[0]+1, ..., ran[1]
+            eq_s_y[(i, max(dom))][y] = 0
+            eq_u_y[(i, max(dom))][y] = 0
+      elif (len(dom) > 2):
+        # {0,1,2} --> =0 =1 =2 <1 (NOT <2 - IT'S FLIPPED =2)
+        # {0,3,4} --> =0 =3 =4 <3 (NOT <4 - IT'S FLIPPED =4)
+        for val in dom:
+          also_ineq = (i not in data.Xineqforbidden and
+                       val != min(dom) and val != max(dom))
           eq_s[(i, val)] = 0
           eq_s_y[(i, val)] = {}
           eq_u_y[(i, val)] = {}
-          if (i not in data.Xineqforbidden):
+          if (also_ineq):
             in_s[(i, val)] = 0
             in_s_y[(i, val)] = {}
             in_u_y[(i, val)] = {}
@@ -63,7 +59,7 @@ class Split_entropy:
             if y != min_y:
               eq_s_y[(i, val)][y] = 0
               eq_u_y[(i, val)][y] = 0
-              if (i not in data.Xineqforbidden):
+              if (also_ineq):
                 in_s_y[(i, val)][y] = 0
                 in_u_y[(i, val)][y] = 0
 
@@ -149,7 +145,7 @@ class Split_entropy:
       # Done; return computed entropy
       return cand_ent
 
-    for (pos, val) in eq_s:
+    for (pos, val) in sorted(eq_s):
       ent = get_ent(pos, val, equality=True)
       if ent is not None:
         assert(ent >= 0.)
@@ -160,7 +156,7 @@ class Split_entropy:
           b_val = val
           b_eq = True
 
-    for (pos, val) in in_s:
+    for (pos, val) in sorted(in_s):
       ent = get_ent(pos, val, equality=False)
       if ent is not None:
         assert(ent >= 0.)
@@ -200,7 +196,7 @@ class Split_entropy:
 
     if (b_eq is None):
       # Predicates have 0 IG, use TACAS heuristic
-      for (pos, val) in eq_s:
+      for (pos, val) in sorted(eq_s):
         heur = get_heur(pos, val, equality=True)
         if heur is not None:
           assert(heur >= 0.)
@@ -211,7 +207,7 @@ class Split_entropy:
             b_val = val
             b_eq = True
 
-      for (pos, val) in in_s:
+      for (pos, val) in sorted(in_s):
         heur = get_heur(pos, val, equality=False)
         if heur is not None:
           assert(heur >= 0.)

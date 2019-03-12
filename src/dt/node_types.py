@@ -26,33 +26,24 @@ class Predicate:
     return self.evaluate_sample(np.transpose(X))
 
 
-  def evaluate_ranges(self, X):
+  def evaluate_domains(self, X):
     assert(len(X.shape) == 2)
-    sat_min, sat_max, unsat_min, unsat_max = None, None, None, None
+    sat_Xdomains = [set() for _ in range(X.shape[1])]
+    unsat_Xdomains = [set() for _ in range(X.shape[1])]
     mask = []
     for sample_float in X:
       res = self.evaluate_sample(sample_float)
       mask.append(res)
       sample = sample_float.astype(int)
       if res:
-        if sat_min is None:
-          sat_min = sample
-          sat_max = sample
-        else:
-          sat_min = np.minimum(sat_min, sample)
-          sat_max = np.maximum(sat_max, sample)
+        for idx, val in enumerate(sample):
+          assert(idx >= 0 and idx < X.shape[1])
+          sat_Xdomains[idx].add(val)
       else:
-        if unsat_min is None:
-          unsat_min = sample
-          unsat_max = sample
-        else:
-          unsat_min = np.minimum(unsat_min, sample)
-          unsat_max = np.maximum(unsat_max, sample)
-    sat_Xranges, unsat_Xranges = [], []
-    for i in range(sat_min.size):
-      sat_Xranges.append([sat_min[i], sat_max[i]])
-      unsat_Xranges.append([unsat_min[i], unsat_max[i]])
-    return np.array(mask), np.array(sat_Xranges), np.array(unsat_Xranges)
+        for idx, val in enumerate(sample):
+          assert(idx >= 0 and idx < X.shape[1])
+          unsat_Xdomains[idx].add(val)
+    return np.array(mask), sat_Xdomains, unsat_Xdomains
 
 
 class Line:
@@ -63,6 +54,7 @@ class Line:
     self.feature_mask = feature_mask
     self.scaler = scaler
     self.name = '[%s / %s] LC (%d)' % (cnames[0], cnames[1], sample_no)
+    self.sample_no = sample_no
 
 
   def evaluate(self, X):
@@ -80,6 +72,8 @@ class Answer:
   def __init__(self, answer, answername, sample_no):
     self.answer = answer
     self.name = '%s (%d)' % (answername, sample_no)
+    self.sample_no = sample_no
+
 
   def evaluate(self):
     return int(self.answer)

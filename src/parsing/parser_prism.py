@@ -21,7 +21,7 @@ def parse_prism(folder, filename):
   X = []
   Y = []
   Xnames = []
-  Xranges = []
+  Xdomains = []
   Ynames = {'no': 0, 'yes': 1}
 
   Actions = {}  # map string(action name)->int(action id)
@@ -38,7 +38,7 @@ def parse_prism(folder, filename):
       break # we have finished parsing
     if line.startswith('('):
       # sample - get action played
-      assert(len(Xnames) and len(Xranges))
+      assert(len(Xnames) and len(Xdomains))
       [_, act] = line.split(':')
       act = act.strip()
       mod = 'synchronous'
@@ -57,7 +57,7 @@ def parse_prism(folder, filename):
       if (mod, act) not in ModActPlayed:
         ModActPlayed.add((mod, act))
     else:
-      assert(not len(Xnames) and not len(Xranges))
+      assert(not len(Xnames) and not len(Xdomains))
       namesRanges = line.split(']')[:-1]
       assert(len(namesRanges) > 1)
       for nr in namesRanges:
@@ -69,12 +69,15 @@ def parse_prism(folder, filename):
             len(name.split('_')[1]) > 1):
           name = name.split('_')[1]
         Xnames.append(name)
-        Xranges.append([int(e) for e in rnge.split(',')])
+        [mi, ma] = rnge.split(',')
+        mi, ma = int(mi), int(ma)
+        assert(mi < ma)
+        Xdomains.append(set({e for e in range(mi, ma+1)}))
   # Add module and action features
   Xnames.append('module')
-  Xranges.append([0, len(Modules) - 1])
+  Xdomains.append(set({e for e in range(len(Modules))}))
   Xnames.append('action')
-  Xranges.append([0, len(Actions) - 1])
+  Xdomains.append(set({e for e in range(len(Actions))}))
   Xineqforbidden = set({len(Xnames) - 2, len(Xnames) - 1})
 
   # Asserts
@@ -95,7 +98,7 @@ def parse_prism(folder, filename):
       break # we have finished parsing
     if line.startswith('('):
       # sample
-      assert(len(Xnames) and len(Xranges))
+      assert(len(Xnames) and len(Xdomains))
       [smp, act] = line.split(':')
       assert(smp[0] == '(' and smp[-1] == ')')
       smp = smp[1:-1]
@@ -115,7 +118,7 @@ def parse_prism(folder, filename):
       Y.append(Ynames['yes'])
       X.append(sample)
       # copies for other (module,action)s played
-      for (modX, actX) in ModActPlayed:
+      for (modX, actX) in sorted(ModActPlayed):
         if (modX != mod or actX != act):
           badsam = sample.copy()
           badsam[-2] = float(Modules[modX])
@@ -124,6 +127,6 @@ def parse_prism(folder, filename):
           Y.append(Ynames['no'])
 
   return Dataset(np.array(X), np.array(Y), np.array(Xnames),
-                 np.array(Xranges), Ynames,
+                 Xdomains, Ynames,
                  Xineqforbidden, ActionIDtoName, ModuleIDtoName)
 

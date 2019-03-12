@@ -24,16 +24,21 @@ class Split_auc:
     self.b_val = -1
     self.b_eq = None
 
-    for i, ran in enumerate(data.Xranges):
-      assert(ran[0] <= ran[1])
-      if (ran[1] - ran[0] == 1):
-        self.split_score(data, i, ran[1], True)  # [0,1] --> =1
-      elif (ran[1] - ran[0] > 1):
-        # [0,2] --> =0 =1 =2 <1 <2
-        self.split_score(data, i, ran[1], True)
-        for val in range(ran[0]+1, ran[1]+1):
+    # Compute for each predicate
+    for i, dom in enumerate(data.Xdomains):
+      assert(len(dom) > 0)
+      if (len(dom) == 2):
+        # {0,1} --> =1
+        # {0,8} --> =8
+        self.split_score(data, i, max(dom), True)
+      elif (len(dom) > 2):
+        # {0,1,2} --> =0 =1 =2 <1 (NOT <2 - IT'S FLIPPED =2)
+        # {0,3,4} --> =0 =3 =4 <3 (NOT <4 - IT'S FLIPPED =4)
+        for val in sorted(dom):
+          also_ineq = (i not in data.Xineqforbidden and
+                       val != min(dom) and val != max(dom))
           self.split_score(data, i, val, True)
-          if (i not in data.Xineqforbidden):
+          if (also_ineq):
             self.split_score(data, i, val, False)
 
     # Done; return the best predicate
