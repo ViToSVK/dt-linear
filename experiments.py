@@ -62,7 +62,7 @@ def parse_output(output):
   result = {'info': ''}
   global ALGOS
   for algo in ALGOS:
-    result[algo] = {'time': -1., 'nodes': -1, 'correct': 'F'}
+    result[algo] = {'time': -1., 'nodes': -1, 'depth': -1., 'correct': 'F'}
   try:
     parts = output.split(b'\n')
     for pp in parts:
@@ -78,6 +78,8 @@ def parse_output(output):
             elif '_nodes' in p:
               # Number of inner nodes
               result[algo]['nodes'] = int(p.split(':')[1].strip())
+            elif '_wavg_depth' in p:
+              result[algo]['depth'] = float(p.split(':')[1].strip())
             elif '_correct' in p:
               cor = p.split(':')[1].strip()
               if cor == 'True':
@@ -107,24 +109,12 @@ def decode_output(output):
   return '\n'.join(decoded)
 
 
-def run_one(folder, filename):
-  command_parts = ['python' if ASSERTIONS else 'python -O',
-                   'main.py', folder, filename]
-  command = ' '.join(command_parts)
-  stdout, stderr = run_command(command)
-
-  out = parse_output(stdout)
-  err = decode_output(stderr)
-  print('STDOUT')
-  print(out)
-  print('STDERR')
-  print(err)
-
+def write_output(out, err):
   global REPORT_PATH
   f = open(REPORT_PATH,'a')
-  f.write('='*100 + '\n')
-  f.write(filename + '\n')
-  f.write('-'*100 + '\n')
+  f.write('='*105 + '\n')
+  f.write(out['filename'] + '\n')
+  f.write('-'*105 + '\n')
   f.write(out['info'] + '\n')
   global ALGOS
   for algo in ALGOS:
@@ -132,9 +122,27 @@ def run_one(folder, filename):
     d = 40 - len(algo)
     f.write(('{:>%d}' % d).format('%s nodes' % out[algo]['nodes']))
     f.write('{:>20}'.format('%s correct' % out[algo]['correct']))
-    f.write('{:>30}'.format('%s time\n' % out[algo]['time']))
+    f.write('{:>22}'.format('%s depth' % out[algo]['depth']))
+    f.write('{:>22}'.format('%s time\n' % out[algo]['time']))
   f.write('%s\n' % err)
   f.close()
+
+
+def run_one(folder, filename):
+  command_parts = ['python' if ASSERTIONS else 'python -O',
+                   'main.py', folder, filename]
+  command = ' '.join(command_parts)
+  stdout, stderr = run_command(command)
+
+  out = parse_output(stdout)
+  out['filename'] = filename
+  err = decode_output(stderr)
+  print('STDOUT')
+  print(out)
+  print('STDERR')
+  print(err)
+
+  write_output(out, err)
 
 
 def run_all():

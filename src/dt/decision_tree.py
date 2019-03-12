@@ -111,3 +111,22 @@ class Decision_tree:
   def inner_and_lc_nodes(self):
     return self.inner_nodes() + self.lc_nodes
 
+
+  def depth_help(self, node):
+    if (node.is_line()):
+      return node.level * node.line.sample_no, node.line.sample_no
+    elif (node.is_answer()):
+      return node.level * node.answer.sample_no, node.answer.sample_no
+    else:
+      assert(not node.is_leaf())
+      c1, n1 = self.depth_help(node.childSAT)
+      c2, n2 = self.depth_help(node.childUNSAT)
+      return c1+c2, n1+n2
+
+
+  def weighted_avg_depth(self):
+    if not self.ready:
+      raise Exception('Tree is not built yet, can not calculate depth')
+    [cumulative_depth, number_of_samples] = self.depth_help(self.root)
+    return float(cumulative_depth) / float(number_of_samples)
+

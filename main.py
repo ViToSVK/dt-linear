@@ -40,18 +40,21 @@ def main_timeprof(folder, filename):
   bl = DT_linear(Split_entropy(), use_lc=False)
   baseline_timeprof(bl, ds)
   print('baseline_nodes: %d' % bl.inner_and_lc_nodes())
+  print('baseline_wavg_depth: %.4f' % bl.weighted_avg_depth())
   print('baseline_correct: %s' % bl.is_correct_ds(ds))
   #bl.graph('%s_BL' % filename, png=True)
 
   lc_ent = DT_linear(Split_entropy(), use_lc=True)
   lc_ent_timeprof(lc_ent, ds)
   print('lc_ent_nodes: %d' % lc_ent.inner_and_lc_nodes())
+  print('lc_ent_wavg_depth: %.4f' % lc_ent.weighted_avg_depth())
   print('lc_ent_correct: %s' % lc_ent.is_correct_ds(ds))
   #lc_ent.graph('%s_LC_ENT' % filename, png=True)
 
   lc_auc = DT_linear(Split_auc(), use_lc=True)
   lc_auc_timeprof(lc_auc, ds)
   print('lc_auc_nodes: %d' % lc_auc.inner_and_lc_nodes())
+  print('lc_auc_wavg_depth: %.4f' % lc_auc.weighted_avg_depth())
   print('lc_auc_correct: %s' % lc_auc.is_correct_ds(ds))
   #lc_auc.graph('%s_LC_AUC' % filename, png=True)
 
