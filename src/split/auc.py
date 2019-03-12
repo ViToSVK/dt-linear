@@ -15,6 +15,7 @@ class Split_auc:
     self.b_pos = -1
     self.b_val = -1
     self.b_eq = None
+    self.EPSILON = 0.00000001
 
 
   def best(self, data):
@@ -41,7 +42,11 @@ class Split_auc:
     assert(self.b_pos < data.Xnames.size)
 
     numname = None
-    if (data.Xnames[self.b_pos] == 'Action'):
+    if (data.Xnames[self.b_pos] == 'module'):
+      assert(self.b_eq)
+      assert(self.b_val in data.ModuleIDtoName)
+      numname = data.ModuleIDtoName[self.b_val]
+    elif (data.Xnames[self.b_pos] == 'action'):
       assert(self.b_eq)
       assert(self.b_val in data.ActionIDtoName)
       numname = data.ActionIDtoName[self.b_val]
@@ -83,7 +88,7 @@ class Split_auc:
         clf.fit(unsat_X, unsat_Y)
         areaUNSAT = roc_auc_score(y_true=unsat_Y, y_score=clf.predict(unsat_X))
 
-    if (areaSAT + areaUNSAT > self.b_score):
+    if (areaSAT + areaUNSAT > self.b_score + self.EPSILON):
       self.b_score = areaSAT + areaUNSAT
       self.b_pos = pos
       self.b_val = value

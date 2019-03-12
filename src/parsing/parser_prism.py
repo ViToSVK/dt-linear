@@ -23,8 +23,12 @@ def parse_prism(folder, filename):
   Xnames = []
   Xranges = []
   Ynames = {'no': 0, 'yes': 1}
+
   Actions = {}  # map string(action name)->int(action id)
   ActionIDtoName = {}  # map int(action id)->string(action name)
+  Modules = {'synchronous': 0}  # map string->int
+  ModuleIDtoName = {0: 'synchronous'}  # map int->string
+  ModActPlayed = set()
 
   # First scan to collect actions played, names and ranges
   for line in open('%s/%s' % (folder, filename), 'r'):
@@ -37,10 +41,21 @@ def parse_prism(folder, filename):
       assert(len(Xnames) and len(Xranges))
       [_, act] = line.split(':')
       act = act.strip()
+      mod = 'synchronous'
+      if ('async_' in act):
+        assert(len(act.split('_')) > 2)  # async actionname modulename
+        mod = act.split('_')[-1]
+        act = '_'.join(act.split('_')[:-1])
       if act not in Actions:
         pos = len(Actions)
         Actions[act] = pos
         ActionIDtoName[pos] = act
+      if mod not in Modules:
+        pos = len(Modules)
+        Modules[mod] = pos
+        ModuleIDtoName[pos] = mod
+      if (mod, act) not in ModActPlayed:
+        ModActPlayed.add((mod, act))
     else:
       assert(not len(Xnames) and not len(Xranges))
       namesRanges = line.split(']')[:-1]
@@ -55,10 +70,12 @@ def parse_prism(folder, filename):
           name = name.split('_')[1]
         Xnames.append(name)
         Xranges.append([int(e) for e in rnge.split(',')])
-  # Add action feature
+  # Add module and action features
+  Xnames.append('module')
+  Xranges.append([0, len(Modules) - 1])
   Xnames.append('action')
   Xranges.append([0, len(Actions) - 1])
-  Xineqforbidden = set({len(Xnames) - 1})
+  Xineqforbidden = set({len(Xnames) - 2, len(Xnames) - 1})
 
   # Asserts
   allnames = set()
@@ -85,18 +102,28 @@ def parse_prism(folder, filename):
       sample = [float(e) if e.isdigit() else nondigits_to_float(e)
                 for e in smp.split(',')]
       act = act.strip()
+      mod = 'synchronous'
+      if ('async_' in act):
+        assert(len(act.split('_')) > 2)  # async actionname modulename
+        mod = act.split('_')[-1]
+        act = '_'.join(act.split('_')[:-1])
       assert(act in Actions)
+      assert(mod in Modules)
+      assert((mod, act) in ModActPlayed)
+      sample.append(float(Modules[mod]))
       sample.append(float(Actions[act]))
       Y.append(Ynames['yes'])
       X.append(sample)
-      # copies for other actions played
-      for badact in Actions:
-        if (badact != act):
+      # copies for other (module,action)s played
+      for (modX, actX) in ModActPlayed:
+        if (modX != mod or actX != act):
           badsam = sample.copy()
-          badsam[-1] = float(Actions[badact])
+          badsam[-2] = float(Modules[modX])
+          badsam[-1] = float(Actions[actX])
           X.append(badsam)
           Y.append(Ynames['no'])
 
   return Dataset(np.array(X), np.array(Y), np.array(Xnames),
-                 np.array(Xranges), Ynames, Xineqforbidden, ActionIDtoName)
+                 np.array(Xranges), Ynames,
+                 Xineqforbidden, ActionIDtoName, ModuleIDtoName)
 

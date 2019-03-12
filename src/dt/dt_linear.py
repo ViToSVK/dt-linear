@@ -84,7 +84,9 @@ class DT_linear(Decision_tree):
           assert(y in Ynames_back and Ynames_back[y] not in s_Ynames)
           s_Ynames[Ynames_back[y]] = y
       c.childSAT = Node(Dataset(s_X, s_Y, s_Xnames, s_Xranges, s_Ynames,
-                                c.data.Xineqforbidden.copy(), c.data.ActionIDtoName.copy()),
+                                c.data.Xineqforbidden.copy(),
+                                c.data.ActionIDtoName.copy(),
+                                c.data.ModuleIDtoName.copy()),
                         c)
       que.put_nowait(c.childSAT)
       # UNSAT
@@ -99,7 +101,9 @@ class DT_linear(Decision_tree):
           assert(y in Ynames_back and Ynames_back[y] not in u_Ynames)
           u_Ynames[Ynames_back[y]] = y
       c.childUNSAT = Node(Dataset(u_X, u_Y, u_Xnames, u_Xranges, u_Ynames,
-                                  c.data.Xineqforbidden.copy(), c.data.ActionIDtoName.copy()),
+                                  c.data.Xineqforbidden.copy(),
+                                  c.data.ActionIDtoName.copy(),
+                                  c.data.ModuleIDtoName.copy()),
                           c)
       que.put_nowait(c.childUNSAT)
       # Clean up previous dataset

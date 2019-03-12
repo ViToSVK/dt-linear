@@ -227,7 +227,11 @@ class Split_entropy:
     assert(b_pos >= 0)
     assert(b_pos < data.Xnames.size)
     numname = None
-    if (data.Xnames[b_pos] == 'Action'):
+    if (data.Xnames[b_pos] == 'module'):
+      assert(b_eq)
+      assert(b_val in data.ModuleIDtoName)
+      numname = data.ModuleIDtoName[b_val]
+    elif (data.Xnames[b_pos] == 'action'):
       assert(b_eq)
       assert(b_val in data.ActionIDtoName)
       numname = data.ActionIDtoName[b_val]

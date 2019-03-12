@@ -82,6 +82,5 @@ def parse_iostr(folder, filename):
         Y.append(0)
 
   return Dataset(np.array(X).astype(float), np.array(Y).astype(int),
-                 Xnames, np.array(Xranges), Ynames,
-                 Xineqforbidden=set(), ActionIDtoName={})
+                 Xnames, np.array(Xranges), Ynames)
 

@@ -1,7 +1,8 @@
 # Dataset class
 
 class Dataset:
-  def __init__(self, X, Y, Xnames, Xranges, Ynames, Xineqforbidden, ActionIDtoName):
+  def __init__(self, X, Y, Xnames, Xranges, Ynames,
+               Xineqforbidden=set(), ActionIDtoName={}, ModuleIDtoName={}):
     self.X = X  # numpy2D(float)
     self.Y = Y  # numpy1D(int)
     self.Xnames = Xnames  # list[string]
@@ -9,6 +10,7 @@ class Dataset:
     self.Ynames = Ynames  # map[string->int]
     self.Xineqforbidden = Xineqforbidden  # set[int]
     self.ActionIDtoName = ActionIDtoName  # map[int->string]
+    self.ModuleIDtoName = ModuleIDtoName  # map[int->string]
 
 
   def dump(self, short=False):
@@ -34,4 +36,10 @@ class Dataset:
       print('Features that have inequality predicates forbidden:')
       for i in self.Xineqforbidden:
         print('%s (id %d)' % (self.Xnames[i], i))
+    if (len(self.ModuleIDtoName)):
+      print('Module ID to name:')
+      print(self.ModuleIDtoName)
+    if (len(self.ActionIDtoName)):
+      print('Action ID to name:')
+      print(self.ActionIDtoName)
 
