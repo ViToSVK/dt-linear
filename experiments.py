@@ -59,7 +59,7 @@ def run_command(cmd):
 
 # Decode and parse output from stdout after running a command
 def parse_output(output):
-  result = {}
+  result = {'info': ''}
   global ALGOS
   for algo in ALGOS:
     result[algo] = {'time': -1., 'nodes': -1, 'correct': 'F'}
@@ -67,19 +67,22 @@ def parse_output(output):
     parts = output.split(b'\n')
     for pp in parts:
       p = pp.decode('utf-8')
-      for algo in ALGOS:
-        if algo in p:
-          if '_timeprof' in p:
-            # Tree building time
-            result[algo]['time'] = float(p.split()[3])
-          elif '_nodes' in p:
-            # Number of inner nodes
-            result[algo]['nodes'] = int(p.split(':')[1].strip())
-          elif '_correct' in p:
-            cor = p.split(':')[1].strip()
-            if cor == 'True':
-              result[algo]['correct'] = 'T'
-          break
+      if 'samples,' in p and 'features' in p:
+        result['info'] = p.strip()
+      else:
+        for algo in ALGOS:
+          if algo in p:
+            if '_timeprof' in p:
+              # Tree building time
+              result[algo]['time'] = float(p.split()[3])
+            elif '_nodes' in p:
+              # Number of inner nodes
+              result[algo]['nodes'] = int(p.split(':')[1].strip())
+            elif '_correct' in p:
+              cor = p.split(':')[1].strip()
+              if cor == 'True':
+                result[algo]['correct'] = 'T'
+            break
   except:
     pass
 
@@ -122,6 +125,7 @@ def run_one(folder, filename):
   f.write('='*100 + '\n')
   f.write(filename + '\n')
   f.write('-'*100 + '\n')
+  f.write(out['info'] + '\n')
   global ALGOS
   for algo in ALGOS:
     f.write(algo)

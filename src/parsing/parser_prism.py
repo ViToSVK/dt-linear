@@ -49,16 +49,26 @@ def parse_prism(folder, filename):
         [name, rnge] = nr.split('[')
         if ';' in name:
           name = name[name.index(';')+1:]
-        Xnames.append(name[:-1])
+        name = name[:-1]
+        if ('_' in name and len(name.split('_')) == 2 and
+            len(name.split('_')[1]) > 1):
+          name = name.split('_')[1]
+        Xnames.append(name)
         Xranges.append([int(e) for e in rnge.split(',')])
   # Add action feature
-  Xnames.append('Action')
+  Xnames.append('action')
+  Xranges.append([0, len(Actions) - 1])
+  Xineqforbidden = set({len(Xnames) - 1})
+
+  # Asserts
+  allnames = set()
+  for name in Xnames:
+    assert(name not in allnames)
+    allnames.add(name)
   assert(len(Actions) == len(ActionIDtoName))
   for action in Actions:
     assert(ActionIDtoName[Actions[action]] == action)
   assert(len(Actions) >= 2)
-  Xranges.append([0, len(Actions) - 1])
-  Xineqforbidden = set({len(Xnames) - 1})
 
   # Second scan to collect samples
   for line in open('%s/%s' % (folder, filename), 'r'):

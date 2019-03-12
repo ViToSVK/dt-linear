@@ -27,7 +27,9 @@ def main_timeprof(folder, filename):
     tree.fit_ds(dataset)
 
   ds = parse('datasets/%s' % folder, filename)
-  #ds.dump()
+  ds.dump(short=True)
+
+  #return
 
   sk = DT_sklearn()
   sklearn_timeprof(sk, ds)

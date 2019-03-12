@@ -11,7 +11,10 @@ class Dataset:
     self.ActionIDtoName = ActionIDtoName  # map[int->string]
 
 
-  def dump(self):
+  def dump(self, short=False):
+    if (short):
+      print('%d samples, %d features' % (self.X.shape[0], self.X.shape[1]))
+      return
     assert(self.Y.size == self.X.shape[0])
     print('%d samples that have %d features. First 3 samples:'
           % (self.X.shape[0], self.X.shape[1]))
