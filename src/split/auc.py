@@ -10,11 +10,12 @@ from node_types import Predicate
 
 
 class Split_auc:
-  def __init__(self):
+  def __init__(self, clean_boost=False):
     self.b_score = 0.
     self.b_pos = -1
     self.b_val = -1
     self.b_eq = None
+    self.clean_boost = clean_boost
     self.EPSILON = 0.00000001
 
 
@@ -70,25 +71,25 @@ class Split_auc:
     clf = LinearRegression()
 
     areaSAT = 0.
-    if (sat_X.size > 0):
+    if (sat_X.shape[0] > 0):
       Ys_present = set()
       for y in sat_Y:
         Ys_present.add(y)
       assert(len(Ys_present) > 0)
       if (len(Ys_present) == 1):  # only one class present
-        areaSAT = 1.
+        areaSAT = 1. + (0.01 if self.clean_boost else 0.)
       elif (len(Ys_present) == 2):
         clf.fit(sat_X, sat_Y)
         areaSAT = roc_auc_score(y_true=sat_Y, y_score=clf.predict(sat_X))
 
     areaUNSAT = 0.
-    if (unsat_X.size > 0):
+    if (unsat_X.shape[0] > 0):
       Ys_present = set()
       for y in unsat_Y:
         Ys_present.add(y)
       assert(len(Ys_present) > 0)
       if (len(Ys_present) == 1):  # only one class present
-        areaUNSAT = 1.
+        areaUNSAT = 1. + (0.01 if self.clean_boost else 0.)
       elif (len(Ys_present) == 2):
         clf.fit(unsat_X, unsat_Y)
         areaUNSAT = roc_auc_score(y_true=unsat_Y, y_score=clf.predict(unsat_X))
