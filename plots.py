@@ -11,7 +11,8 @@ import os
 ALGOS = {'sklearn': 'Scikit-learn',
          'baseline': 'Baseline',
          'lc_ent': 'LC_entropy',
-         'lc_auc': 'LC_auc',
+         'lc_auc_reg': 'LC_auc_reg',
+         'lc_auc_clf': 'LC_auc_clf',
         }
 
 
@@ -77,8 +78,8 @@ def join_stats(stats_list):
   return res
 
 
-def search(stats):
-  for i,x in enumerate(stats['lc_auc']):
+def search(stats, algo):
+  for i,x in enumerate(stats[algo]):
     if x > stats['baseline'][i]:
       print(stats['names'][i])
 
@@ -177,12 +178,10 @@ def ratio_plot(stats, plotname, x_algo, y_algo):
 
 
 def create_plots(stats, plotname):
-  all_plot(stats, plotname, 'baseline', 'lc_auc', 'lc_ent')
-  versus_plot(stats, plotname, 'baseline', 'lc_auc')  # lc_ent
-  ratio_plot(stats, plotname, 'baseline', 'lc_auc')  # lc_ent
-  #all_plot(stats, plotname, 'sklearn', 'lc_auc', 'lc_ent')
-  #versus_plot(stats, plotname, 'sklearn', 'lc_auc')
-  #ratio_plot(stats, plotname, 'sklearn', 'lc_auc')
+  all_plot(stats, plotname, 'baseline', 'lc_auc_clf', 'lc_ent')
+  versus_plot(stats, plotname, 'baseline', 'lc_auc_clf')
+  ratio_plot(stats, plotname, 'baseline', 'lc_auc_clf')
+  ratio_plot(stats, plotname, 'lc_auc_reg', 'lc_auc_clf')
 
 
 def main():
@@ -198,11 +197,15 @@ def main():
       else:
         stats = collect_stats(filename)
         plotname = filename.replace('report_', '').replace('.txt', '')
-        search(stats)
+        search(stats, 'lc_auc_reg')
+        print('#')
+        search(stats, 'lc_auc_clf')
         create_plots(stats, plotname)
   if (len(stats_prism) > 0):
     stats = join_stats(stats_prism)
-    search(stats)
+    search(stats, 'lc_auc_reg')
+    print('#')
+    search(stats, 'lc_auc_clf')
     create_plots(stats, 'mdps_prism')
 
 

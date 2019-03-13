@@ -15,7 +15,7 @@ TIMED_OUT = False
 # Path to the report file - set up from sys.argv[1]
 REPORT_PATH = None
 # Algorithms
-ALGOS = ['sklearn', 'baseline', 'lc_ent', 'lc_auc']
+ALGOS = ['sklearn', 'baseline', 'lc_ent', 'lc_auc_reg', 'lc_auc_clf']
 
 
 def pretty_time(s):

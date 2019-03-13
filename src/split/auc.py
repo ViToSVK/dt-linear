@@ -2,7 +2,9 @@
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import accuracy_score, roc_auc_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import LinearSVC
 import sys
 sys.path.insert(0, '../dt')
 
@@ -10,13 +12,14 @@ from node_types import Predicate
 
 
 class Split_auc:
-  def __init__(self, clean_boost=False):
+  def __init__(self, clean_boost=False, use_svm=False):
     self.b_score = 0.
     self.b_pos = -1
     self.b_val = -1
     self.b_eq = None
     self.feature_mask = []
     self.clean_boost = clean_boost
+    self.use_svm = use_svm
     self.EPSILON = 0.00000001
 
 
@@ -78,34 +81,40 @@ class Split_auc:
     unsat_X = data.X[~mask]
     unsat_X = unsat_X[:,self.feature_mask]  # Apply feature mask
     unsat_Y = data.Y[~mask]
-    clf = LinearRegression()
 
-    areaSAT = 0.
-    if (sat_X.shape[0] > 0):
-      Ys_present = set()
-      for y in sat_Y:
-        Ys_present.add(y)
-      assert(len(Ys_present) > 0)
-      if (len(Ys_present) == 1):  # only one class present
-        areaSAT = 1. + (0.01 if self.clean_boost else 0.)
-      elif (len(Ys_present) == 2):
-        clf.fit(sat_X, sat_Y)
-        areaSAT = roc_auc_score(y_true=sat_Y, y_score=clf.predict(sat_X))
+    reg = LinearRegression()
+    clf = None if not self.use_svm else \
+          LinearSVC(penalty='l1', tol=0.000001, C=10000.0,
+                    dual=False, fit_intercept=True, random_state=42)
+    area = {'sat': 0., 'unsat': 0.}
 
-    areaUNSAT = 0.
-    if (unsat_X.shape[0] > 0):
-      Ys_present = set()
-      for y in unsat_Y:
-        Ys_present.add(y)
-      assert(len(Ys_present) > 0)
-      if (len(Ys_present) == 1):  # only one class present
-        areaUNSAT = 1. + (0.01 if self.clean_boost else 0.)
-      elif (len(Ys_present) == 2):
-        clf.fit(unsat_X, unsat_Y)
-        areaUNSAT = roc_auc_score(y_true=unsat_Y, y_score=clf.predict(unsat_X))
+    for (X, Y, name) in [(sat_X, sat_Y, 'sat'), (unsat_X, unsat_Y, 'unsat')]:
+      if (X.shape[0] > 0):
+        Ys_present = set()
+        for y in Y:
+          Ys_present.add(y)
+        assert(len(Ys_present) > 0)
+        if (len(Ys_present) == 1):  # only one class present
+          area[name] = 1. + (0.01 if self.clean_boost else 0.)
+        elif (len(Ys_present) == 2):
+          X_tr = StandardScaler().fit_transform(X)
+          if (self.use_svm):
+            # SVM classifier
+            clf.fit(X_tr, Y)
+            ac = accuracy_score(normalize=False, y_true=Y,
+                                y_pred=clf.predict(X_tr))
+            if (ac == Y.size):
+              area[name] = 1.
+            else:
+              reg.fit(X_tr, Y)
+              area[name] = roc_auc_score(y_true=Y, y_score=reg.predict(X_tr))
+          else:
+            # Linear regressor
+            reg.fit(X_tr, Y)
+            area[name] = roc_auc_score(y_true=Y, y_score=reg.predict(X_tr))
 
-    if (areaSAT + areaUNSAT > self.b_score + self.EPSILON):
-      self.b_score = areaSAT + areaUNSAT
+    if (area['sat'] + area['unsat'] > self.b_score + self.EPSILON):
+      self.b_score = area['sat'] + area['unsat']
       self.b_pos = pos
       self.b_val = value
       self.b_eq = equality
