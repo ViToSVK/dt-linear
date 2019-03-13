@@ -77,6 +77,12 @@ def join_stats(stats_list):
   return res
 
 
+def search(stats):
+  for i,x in enumerate(stats['lc_auc']):
+    if x > stats['baseline'][i]:
+      print(stats['names'][i])
+
+
 def all_plot(stats, plotname, x_algo, y_algo, z_algo=None, shift=True):
   SHIFT = 4 if shift else 0
   l = stats[x_algo].size
@@ -192,9 +198,12 @@ def main():
       else:
         stats = collect_stats(filename)
         plotname = filename.replace('report_', '').replace('.txt', '')
+        search(stats)
         create_plots(stats, plotname)
   if (len(stats_prism) > 0):
-    create_plots(join_stats(stats_prism), 'mdps_prism')
+    stats = join_stats(stats_prism)
+    search(stats)
+    create_plots(stats, 'mdps_prism')
 
 
 main()

@@ -15,6 +15,7 @@ class Split_auc:
     self.b_pos = -1
     self.b_val = -1
     self.b_eq = None
+    self.feature_mask = []
     self.clean_boost = clean_boost
     self.EPSILON = 0.00000001
 
@@ -24,6 +25,13 @@ class Split_auc:
     self.b_pos = -1
     self.b_val = -1
     self.b_eq = None
+
+    # Create a mask to only include features that
+    # do not contain the same value in all samples
+    self.feature_mask = []
+    for i, dom in enumerate(data.Xdomains):
+      assert(len(dom) >= 1)
+      self.feature_mask.append(len(dom) > 1)
 
     # Compute for each predicate
     for i, dom in enumerate(data.Xdomains):
@@ -65,8 +73,10 @@ class Split_auc:
     pred = Predicate(fname='', fpos=pos, equality=equality, number=value)
     mask = (pred.evaluate_matrix(data.X))
     sat_X = data.X[mask]
+    sat_X = sat_X[:,self.feature_mask]  # Apply feature mask
     sat_Y = data.Y[mask]
     unsat_X = data.X[~mask]
+    unsat_X = unsat_X[:,self.feature_mask]  # Apply feature mask
     unsat_Y = data.Y[~mask]
     clf = LinearRegression()
 
