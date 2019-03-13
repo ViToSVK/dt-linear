@@ -77,20 +77,21 @@ def join_stats(stats_list):
   return res
 
 
-def all_plot(stats, plotname, x_algo, y_algo, z_algo=None):
+def all_plot(stats, plotname, x_algo, y_algo, z_algo=None, shift=True):
+  SHIFT = 4 if shift else 0
   l = stats[x_algo].size
   assert(l == stats[y_algo].size)
   assert(z_algo is None or l == stats[z_algo].size)
 
-  fig = plt.figure(num=None, figsize=(15, 6), dpi=150, facecolor='w', edgecolor='k')
+  fig = plt.figure(num=None, figsize=(15, 7), dpi=150, facecolor='w', edgecolor='k')
   ind = np.lexsort((stats[x_algo], stats[y_algo])) # first by y_algo
-  plt.scatter(range(l), [stats[x_algo][i] for i in ind],
+  plt.scatter(range(l), [stats[x_algo][i] + SHIFT for i in ind],
               color='b', edgecolor='black', linewidth=0.4, alpha=1.)
-  plt.scatter(range(l), [stats[y_algo][i] for i in ind],
+  plt.scatter(range(l), [stats[y_algo][i] + SHIFT for i in ind],
               color='r', edgecolor='black', linewidth=0.4, alpha=1.)
   if z_algo is not None:
-    plt.scatter(range(l), [stats[z_algo][i] for i in ind],
-                color='g', edgecolor='black', linewidth=0.4, alpha=1.)
+    plt.scatter(range(l), [stats[z_algo][i] + SHIFT for i in ind],
+                color='g', edgecolor='black', linewidth=0.4, alpha=0.6)
 
   ma = max(stats['%s_max' % x_algo], stats['%s_max' % y_algo])
   if z_algo is not None:
@@ -99,14 +100,14 @@ def all_plot(stats, plotname, x_algo, y_algo, z_algo=None):
   if z_algo is not None:
     mi = min(mi, stats['%s_min' % z_algo])
 
-  plt.ylim([0.9 if mi == 1 else (mi - 1.), ma * 1.1])
+  plt.ylim([(SHIFT+mi) * 0.9, ma * 1.1])
   plt.xlim([-(l-1) * 0.007, (l-1) * 1.007])
 
   ax = plt.gca()
   ax.set_yscale('log', basey=np.e)
-  y_ticks = np.ceil(np.logspace(np.log(mi), np.log(ma), num=10, base=np.e))
+  y_ticks = SHIFT + np.ceil(np.logspace(np.log(mi), np.log(ma), num=10, base=np.e))
   ax.set_yticks(y_ticks)
-  ax.set_yticklabels(y_ticks.astype(int))
+  ax.set_yticklabels((y_ticks - SHIFT).astype(int))
   plt.xlabel('Benchmark number', fontsize=18)
   plt.ylabel('Decision tree size', fontsize=18)
 
@@ -170,10 +171,10 @@ def ratio_plot(stats, plotname, x_algo, y_algo):
 
 
 def create_plots(stats, plotname):
-  all_plot(stats, plotname, 'baseline', 'lc_ent', 'lc_auc')
+  all_plot(stats, plotname, 'baseline', 'lc_auc', 'lc_ent')
   versus_plot(stats, plotname, 'baseline', 'lc_auc')  # lc_ent
   ratio_plot(stats, plotname, 'baseline', 'lc_auc')  # lc_ent
-  #all_plot(stats, plotname, 'sklearn', 'lc_ent', 'lc_auc')
+  #all_plot(stats, plotname, 'sklearn', 'lc_auc', 'lc_ent')
   #versus_plot(stats, plotname, 'sklearn', 'lc_auc')
   #ratio_plot(stats, plotname, 'sklearn', 'lc_auc')
 

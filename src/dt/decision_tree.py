@@ -114,7 +114,8 @@ class Decision_tree:
 
   def depth_help(self, node):
     if (node.is_line()):
-      return node.level * node.line.sample_no, node.line.sample_no
+      # One more depth since line is a predicate itself
+      return (node.level + 1) * node.line.sample_no, node.line.sample_no
     elif (node.is_answer()):
       return node.level * node.answer.sample_no, node.answer.sample_no
     else:
