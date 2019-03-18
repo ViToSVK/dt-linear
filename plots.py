@@ -17,36 +17,49 @@ ALGOS = {'sklearn': 'Scikit-learn',
 
 
 def collect_stats(filename):
-  stats = {'names': []}
+  stats = {'names': [], 'samples': [], 'features': []}
   for algo in ALGOS:
     stats[algo] = []
     stats['%s_max' % algo] = 1
     stats['%s_min' % algo] = 31337
 
-  namefollows = False
-  disregard = True
-  c = {'name': ''}
+  c = {'names': '', 'samples': -1, 'features': -1}
   for algo in ALGOS:
     c[algo] = -1
+
+  def add(disr):
+    if (not disr):
+      for stat in ['names', 'samples', 'features']:
+        assert(c[stat] != '' and c[stat] != -1)
+        stats[stat].append(c[stat])
+      for algo in ALGOS:
+        assert(c[algo] > -1)
+        stats[algo].append(c[algo])
+        if c[algo] > stats['%s_max' % algo]:
+          stats['%s_max' % algo] = c[algo]
+        if c[algo] < stats['%s_min' % algo]:
+          stats['%s_min' % algo] = c[algo]
+    c['names'] = ''
+    c['samples'] = -1
+    c['features'] = -1
+    for algo in ALGOS:
+      c[algo] = -1
+
+  namefollows = False
+  disregard = True
   for line in open('results/reports/%s' % filename, 'r'):
     if '===' in line:
-      if not disregard:
-        stats['names'].append(c['name'])
-        for algo in ALGOS:
-          stats[algo].append(c[algo])
-          if c[algo] > stats['%s_max' % algo]:
-            stats['%s_max' % algo] = c[algo]
-          if c[algo] < stats['%s_min' % algo]:
-            stats['%s_min' % algo] = c[algo]
+      add(disregard)
       namefollows = True
       continue
     if namefollows:
       namefollows = False
-      c['name'] = line.strip()
-      for algo in ALGOS:
-        c[algo] = -1
+      c['names'] = line.strip()
       disregard = False
       continue
+    if 'samples' in line and 'features' in line:
+      c['samples'] = int(line.split()[0])
+      c['features'] = int(line.split()[2])
     if 'nodes' in line and 'correct' in line and 'time' in line:
       for algo in ALGOS:
         if algo in line:
@@ -57,21 +70,25 @@ def collect_stats(filename):
             print('%s TREE FOR %s IS NOT CORRECT!' % (algo, c['name']))
             disregard = True
           break
+  # Add last
+  add(disregard)
 
-  stats['names'] = np.array(stats['names'])
+  for stat in ['names', 'samples', 'features']:
+    stats[stat] = np.array(stats[stat])
   for algo in ALGOS:
     stats[algo] = np.array(stats[algo])
   return stats
 
 
 def join_stats(stats_list):
-  res = {'names': np.array([])}
+  res = {stat: np.array([]) for stat in ['names', 'samples', 'features']}
   for algo in ALGOS:
     res[algo] = np.array([])
     res['%s_max' % algo] = 1
     res['%s_min' % algo] = 1
   for stats in stats_list:
-    res['names'] = np.concatenate((res['names'], stats['names']))
+    for stat in ['names', 'samples', 'features']:
+      res[stat] = np.concatenate((res[stat], stats[stat]))
     for algo in ALGOS:
       res[algo] = np.concatenate((res[algo], stats[algo]))
       res['%s_max' % algo] = max(res['%s_max' % algo], stats['%s_max' % algo])
@@ -120,9 +137,9 @@ def all_plot(stats, plotname, x_algo, y_algo, z_algo=None, shift=True):
 
   patches = []
   patches.append(mpatches.Patch(color='blue', label=ALGOS[x_algo]))
-  patches.append(mpatches.Patch(color='red', label=ALGOS[y_algo]))
   if z_algo is not None:
     patches.append(mpatches.Patch(color='green', label=ALGOS[z_algo]))
+  patches.append(mpatches.Patch(color='red', label=ALGOS[y_algo]))
   plt.legend(handles=patches, loc=4)
 
   if not os.path.exists('results/plots'):
@@ -209,5 +226,6 @@ def main():
     create_plots(stats, 'mdps_prism')
 
 
-main()
+if (__name__ == "__main__"):
+  main()
 
