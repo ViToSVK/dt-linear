@@ -12,7 +12,7 @@ class Split_entropy:
     self.EPSILON = 0.00000001
 
 
-  def best(self, data):
+  def best(self, data, _):
     Ypossibilities = []
     min_y = 31337
     for name, idx in data.Ynames.items():
@@ -43,11 +43,12 @@ class Split_entropy:
             eq_s_y[(i, max(dom))][y] = 0
             eq_u_y[(i, max(dom))][y] = 0
       elif (len(dom) > 2):
-        # {0,1,2} --> =0 =1 =2 <1 (NOT <2 - IT'S FLIPPED =2)
-        # {0,3,4} --> =0 =3 =4 <3 (NOT <4 - IT'S FLIPPED =4)
-        for val in dom:
+        # {0,1,2} --> =0 =1 =2  (<1 IS =0; <2 IS =!2)
+        # {0,3,4,6} --> =0 =3 =4 <4 (<3 IS =0; <6 IS =!6)
+        for idx, val in enumerate(sorted(dom)):
+          assert(idx == 0 or val != min(dom))
           also_ineq = (i not in data.Xineqforbidden and
-                       val != min(dom) and val != max(dom))
+                       idx >= 2 and val != max(dom))
           eq_s[(i, val)] = 0
           eq_s_y[(i, val)] = {}
           eq_u_y[(i, val)] = {}

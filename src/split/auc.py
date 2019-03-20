@@ -12,18 +12,17 @@ from node_types import Predicate
 
 
 class Split_auc:
-  def __init__(self, clean_boost=False, use_svm=False):
-    self.b_score = 0.
+  def __init__(self, use_svm=False):
+    self.b_score = -1.
     self.b_pos = -1
     self.b_val = -1
     self.b_eq = None
     self.feature_mask = []
-    self.clean_boost = clean_boost
     self.use_svm = use_svm
     self.EPSILON = 0.00000001
 
 
-  def best(self, data):
+  def best(self, data, node):
     self.b_score = 0.
     self.b_pos = -1
     self.b_val = -1
@@ -42,16 +41,17 @@ class Split_auc:
       if (len(dom) == 2):
         # {0,1} --> =1
         # {0,8} --> =8
-        self.split_score(data, i, max(dom), True)
+        self.split_score(data, i, max(dom), True, dom, node)
       elif (len(dom) > 2):
-        # {0,1,2} --> =0 =1 =2 <1 (NOT <2 - IT'S FLIPPED =2)
-        # {0,3,4} --> =0 =3 =4 <3 (NOT <4 - IT'S FLIPPED =4)
-        for val in sorted(dom):
+        # {0,1,2} --> =0 =1 =2  (<1 IS =0; <2 IS =!2)
+        # {0,3,4,6} --> =0 =3 =4 <4 (<3 IS =0; <6 IS =!6)
+        for idx, val in enumerate(sorted(dom)):
+          assert(idx == 0 or val != min(dom))
           also_ineq = (i not in data.Xineqforbidden and
-                       val != min(dom) and val != max(dom))
-          self.split_score(data, i, val, True)
+                       idx >= 2 and val != max(dom))
           if (also_ineq):
-            self.split_score(data, i, val, False)
+            self.split_score(data, i, val, False, dom, node)
+          self.split_score(data, i, val, True, dom, node)
 
     # Done; return the best predicate
     assert(self.b_eq is not None)
@@ -72,12 +72,14 @@ class Split_auc:
                      equality=self.b_eq, number=self.b_val, numberName=numname)
 
 
-  def split_score(self, data, pos, value, equality):
+  def split_score(self, data, pos, value, equality, domain, node):
     pred = Predicate(fname='', fpos=pos, equality=equality, number=value)
     mask = (pred.evaluate_matrix(data.X))
+    sat_Y = data.Y[mask]
+    if (sat_Y.size == 0 or sat_Y.size == data.Y.size):
+      return
     sat_X = data.X[mask]
     sat_X = sat_X[:,self.feature_mask]  # Apply feature mask
-    sat_Y = data.Y[mask]
     unsat_X = data.X[~mask]
     unsat_X = unsat_X[:,self.feature_mask]  # Apply feature mask
     unsat_Y = data.Y[~mask]
@@ -88,30 +90,78 @@ class Split_auc:
                     dual=False, fit_intercept=True, random_state=42)
     area = {'sat': 0., 'unsat': 0.}
 
+    sides_done = set()
+    sides_done_clean = 0
     for (X, Y, name) in [(sat_X, sat_Y, 'sat'), (unsat_X, unsat_Y, 'unsat')]:
-      if (X.shape[0] > 0):
-        Ys_present = set()
-        for y in Y:
-          Ys_present.add(y)
-        assert(len(Ys_present) > 0)
-        if (len(Ys_present) == 1):  # only one class present
-          area[name] = 1. + (0.01 if self.clean_boost else 0.)
-        elif (len(Ys_present) == 2):
-          X_tr = StandardScaler().fit_transform(X)
-          if (self.use_svm):
-            # SVM classifier
-            clf.fit(X_tr, Y)
-            ac = accuracy_score(normalize=False, y_true=Y,
-                                y_pred=clf.predict(X_tr))
-            if (ac == Y.size):
-              area[name] = 1.
-            else:
-              reg.fit(X_tr, Y)
-              area[name] = roc_auc_score(y_true=Y, y_score=reg.predict(X_tr))
+      assert(X.shape[0] > 0)
+      Ys_present = set()
+      for y in Y:
+        Ys_present.add(y)
+      assert(len(Ys_present) > 0)
+      if (len(Ys_present) == 1):  # only one class present
+        area[name] = 1.
+        sides_done.add(name)
+        sides_done_clean += 1
+      elif (len(Ys_present) == 2):
+        X_tr = StandardScaler().fit_transform(X)
+        if (self.use_svm):
+          # SVM classifier
+          clf.fit(X_tr, Y)
+          ac = accuracy_score(normalize=False, y_true=Y,
+                              y_pred=clf.predict(X_tr))
+          if (ac == Y.size):
+            area[name] = 1.
+            sides_done.add(name)
           else:
-            # Linear regressor
             reg.fit(X_tr, Y)
             area[name] = roc_auc_score(y_true=Y, y_score=reg.predict(X_tr))
+        else:
+          # Linear regressor
+          reg.fit(X_tr, Y)
+          area[name] = roc_auc_score(y_true=Y, y_score=reg.predict(X_tr))
+      assert(area[name] <= 1.)
+
+    assert(len(sides_done) <= 2)
+    if (len(sides_done) == 2):
+      # Making sure solving split wins
+      assert(sides_done_clean <= 2)
+      if (sides_done_clean == 2):
+        # Two clean partitions best
+        area['sat'], area['unsat'] = 3., 3.
+      if (sides_done_clean == 1):
+        # One clean one LC partition second best
+        area['sat'], area['unsat'] = 2., 2.
+    else:
+      # Punishment of obviously unfavourable split
+      if (node.parent is not None and
+          node.parent.predicate.fpos == pos and
+          (pos not in data.Xineqforbidden)):
+        area['sat'] /= 2
+        area['unsat'] /= 2
+      #
+      if (equality and (pos not in data.Xineqforbidden) and
+          value != min(domain) and value != max(domain)):
+        area['sat'] /= 2
+        area['unsat'] /= 2
+      #
+      if (len(domain) > 2):
+        sat_dom = 0
+        for domv in domain:
+          if (equality):
+            if (domv == value):
+              sat_dom += 1
+          else:
+            if (domv < value):
+              sat_dom += 1
+        unsat_dom = len(domain) - sat_dom
+        assert(sat_dom >= 1 and unsat_dom >= 1)
+        assert((not equality) or sat_dom == 1)
+        for name, sz, dm in [('sat', sat_Y.size, sat_dom),
+                             ('unsat', unsat_Y.size, unsat_dom)]:
+          if (dm > 1 and (name not in sides_done) and
+              sz / float(data.Y.size) > 0.99):
+            area['sat'] /= float(dm)
+            area['unsat'] /= float(dm)
 
     if (area['sat'] + area['unsat'] > self.b_score + self.EPSILON):
       self.b_score = area['sat'] + area['unsat']

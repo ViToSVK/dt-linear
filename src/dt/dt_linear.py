@@ -66,7 +66,7 @@ class DT_linear(Decision_tree):
           continue
 
       # We need to split here
-      c.predicate = self.split_criterion.best(c.data)
+      c.predicate = self.split_criterion.best(c.data, c)
       mask, s_Xdomains, u_Xdomains = c.predicate.evaluate_domains(c.data.X)
       Ynames_back = {}
       for name, idx in c.data.Ynames.items():
