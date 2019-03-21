@@ -6,7 +6,7 @@ class Dataset:
     self.X = X  # numpy2D(float)
     self.Y = Y  # numpy1D(int)
     self.Xnames = Xnames  # list[string]
-    self.Xdomains = Xdomains  # set[int]
+    self.Xdomains = Xdomains  # list[set[int]]
     self.Ynames = Ynames  # map[string->int]
     self.Xineqforbidden = Xineqforbidden  # set[int]
     self.ActionIDtoName = ActionIDtoName  # map[int->string]

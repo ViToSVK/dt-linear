@@ -20,6 +20,7 @@ class Split_auc:
     self.feature_mask = []
     self.use_svm = use_svm
     self.EPSILON = 0.00000001
+    self.pos_uses = []
 
 
   def best(self, data, node):
@@ -31,9 +32,18 @@ class Split_auc:
     # Create a mask to only include features that
     # do not contain the same value in all samples
     self.feature_mask = []
+    self.pos_uses = []
     for i, dom in enumerate(data.Xdomains):
       assert(len(dom) >= 1)
       self.feature_mask.append(len(dom) > 1)
+      self.pos_uses.append(0)
+
+    cur = node.parent
+    while (cur is not None):
+      assert(cur.is_predicate())
+      assert(cur.predicate.fpos >= 0 and cur.predicate.fpos < len(self.pos_uses))
+      self.pos_uses[cur.predicate.fpos] += 1
+      cur = cur.parent
 
     # Compute for each predicate
     for i, dom in enumerate(data.Xdomains):
@@ -41,7 +51,7 @@ class Split_auc:
       if (len(dom) == 2):
         # {0,1} --> =1
         # {0,8} --> =8
-        self.split_score(data, i, max(dom), True, dom, node)
+        self.split_score(data, i, max(dom), True, dom)
       elif (len(dom) > 2):
         # {0,1,2} --> =0 =1 =2  (<1 IS =0; <2 IS =!2)
         # {0,3,4,6} --> =0 =3 =4 <4 (<3 IS =0; <6 IS =!6)
@@ -50,8 +60,8 @@ class Split_auc:
           also_ineq = (i not in data.Xineqforbidden and
                        idx >= 2 and val != max(dom))
           if (also_ineq):
-            self.split_score(data, i, val, False, dom, node)
-          self.split_score(data, i, val, True, dom, node)
+            self.split_score(data, i, val, False, dom)
+          self.split_score(data, i, val, True, dom)
 
     # Done; return the best predicate
     assert(self.b_eq is not None)
@@ -72,7 +82,7 @@ class Split_auc:
                      equality=self.b_eq, number=self.b_val, numberName=numname)
 
 
-  def split_score(self, data, pos, value, equality, domain, node):
+  def split_score(self, data, pos, value, equality, domain):
     pred = Predicate(fname='', fpos=pos, equality=equality, number=value)
     mask = (pred.evaluate_matrix(data.X))
     sat_Y = data.Y[mask]
@@ -119,25 +129,27 @@ class Split_auc:
           # Linear regressor
           reg.fit(X_tr, Y)
           area[name] = roc_auc_score(y_true=Y, y_score=reg.predict(X_tr))
-      assert(area[name] <= 1.)
+      assert(area[name] < 1. + self.EPSILON)
 
     assert(len(sides_done) <= 2)
     if (len(sides_done) == 2):
       # Making sure solving split wins
       assert(sides_done_clean <= 2)
       if (sides_done_clean == 2):
-        # Two clean partitions best
+        # Two clean partitions - best
+        area['sat'], area['unsat'] = 4., 4.
+      elif (sides_done_clean == 1):
+        # One clean one LC partition - second best
         area['sat'], area['unsat'] = 3., 3.
-      if (sides_done_clean == 1):
-        # One clean one LC partition second best
+      else:
+        # Two LC partitions - third best
         area['sat'], area['unsat'] = 2., 2.
     else:
       # Punishment of obviously unfavourable split
-      if (node.parent is not None and
-          node.parent.predicate.fpos == pos and
-          (pos not in data.Xineqforbidden)):
-        area['sat'] /= 2
-        area['unsat'] /= 2
+      if (pos not in data.Xineqforbidden):
+        assert(pos >= 0 and pos < len(self.pos_uses))
+        area['sat'] /= float(1 + self.pos_uses[pos])
+        area['unsat'] /= float(1 + self.pos_uses[pos])
       #
       if (equality and (pos not in data.Xineqforbidden) and
           value != min(domain) and value != max(domain)):
