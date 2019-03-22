@@ -12,7 +12,8 @@ ALGOS = {'baseline': 'NoLC',
         }
 ALGOS_SORTED = ['baseline', 'lc_ent', 'lc_auc_clf']
 
-SPECS = {'coi': {}, 'csm': {}, 'lea': {}, 'mer': {}}
+SPECS = {'coi': {}, 'csm': {}, 'lea': {}, 'mer': {},
+         'fir': {}, 'zer': {}, 'wla': {}}
 SPECS['coi']['p1'] = 'F[finished]'
 SPECS['coi']['p2'] = 'F[finished\&agree]'
 for k in range(9):
@@ -21,7 +22,11 @@ for k in range(9):
   SPECS['csm']['p3_k%d' % k] = 'F[max\_col$\geq$%d]' % k
 SPECS['lea']['p1'] = 'G[leaders$\leq$1]'
 SPECS['lea']['p2'] = 'F[elected]'
+SPECS['mer']['p1'] = 'F[err\_G]'
 SPECS['mer']['p2'] = 'G[!err\_G]'
+SPECS['fir']['p1'] = 'F[exists\_leader]'
+SPECS['wla']['p1'] = 'F[both\_sent]'
+SPECS['zer']['p1'] = 'F[configured]'
 
 
 def pretty_time(s):
@@ -76,7 +81,8 @@ def table_item(stats, i):
     parts.append(x)
 
   for i, p in enumerate(parts):
-    if (mi[0] == i):
+    assert(i < 2 or mi[1] <= p)
+    if (i >= 2 and mi[1] == p):
       res += ' & \\textbf{%d}' % p
     else:
       res += ' & %d' % p
