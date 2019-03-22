@@ -131,7 +131,7 @@ def all_plot(stats, plotname, x_algo, y_algo, z_algo=None, shift=True):
   ax.set_yscale('log', basey=np.e)
   y_ticks = SHIFT + np.ceil(np.logspace(np.log(mi), np.log(ma), num=10, base=np.e))
   ax.set_yticks(y_ticks)
-  ax.set_yticklabels((y_ticks - SHIFT).astype(int))
+  ax.set_yticklabels((y_ticks - SHIFT).astype(int), fontsize=16)
   plt.xlabel('Benchmark number', fontsize=18)
   plt.ylabel('Decision tree size', fontsize=18)
 
@@ -176,6 +176,7 @@ def ratio_plot(stats, plotname, x_algo, y_algo):
   plt.scatter(range(l), stats[y_algo] / stats[x_algo],
               color='b', edgecolor='black', linewidth=0.6, alpha=0.8)
   plt.plot([-10, 100000], [1, 1], color='r', linewidth=4.0, alpha=0.6)
+  plt.plot([-10, 100000], [0.1, 0.1], color='r', linewidth=4.0, alpha=0.4)
   plt.ylim([min(0.05, min(stats[y_algo] / stats[x_algo])),
             max(1.15, max(stats[y_algo] / stats[x_algo]) + 0.02)])
   plt.xlim([-(l-1) * 0.007, (l-1) * 1.007])
@@ -183,7 +184,7 @@ def ratio_plot(stats, plotname, x_algo, y_algo):
   #ax.set_yscale('log', basey=np.e)
   ticks = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1., 1.1]
   ax.set_yticks(ticks)
-  ax.set_yticklabels(ticks)
+  ax.set_yticklabels(ticks, fontsize=18)
   plt.xlabel('Benchmark number', fontsize=18)
   plt.ylabel('%s/%s size ratio' % (ALGOS[y_algo], ALGOS[x_algo]), fontsize=18)
   if not os.path.exists('results/plots'):
