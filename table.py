@@ -1,6 +1,7 @@
 # Generate table from prism results
 
 import os
+import sys
 
 from plots import collect_stats, join_stats
 
@@ -91,10 +92,10 @@ def table_item(stats, i):
 
 
 def create_table(stats):
-  print('\\small')  # scriptsize
+  print('\\footnotesize')  # scriptsize
   print('\\begin{longtable}{|l | l | l | l || r | r | r |}')
   print('\\hline')
-  print('\\textbf{Model} & \\textbf{Spec} & \\textbf{Samples} & \\textbf{Features} & $\\textbf{%s}$ & $\\textbf{%s}$ & $\\textbf{%s}$ \\\\'
+  print('\\textbf{Model} & \\textbf{Specification} & \\textbf{Samples} & \\textbf{Features} & $\\textbf{%s}$ & $\\textbf{%s}$ & $\\textbf{%s}$ \\\\'
         % (ALGOS['baseline'], ALGOS['lc_ent'], ALGOS['lc_auc_clf']))
   print('\\hline')
 
@@ -109,14 +110,17 @@ def create_table(stats):
 
 
 def main():
-  if not os.path.isdir('results/reports'):
+  subdir = ''
+  if len(sys.argv) >= 2:
+    subdir = '/' + sys.argv[1]
+  if not os.path.isdir('results/reports' + subdir):
     return
 
   stats_prism = []
-  for filename in sorted(os.listdir('results/reports')):
+  for filename in sorted(os.listdir('results/reports' + subdir)):
     if ('report_' in filename and 'prism' in filename and '.txt' in filename):
       #print(filename)
-      stats_prism.append(collect_stats(filename))
+      stats_prism.append(collect_stats(filename, subdir))
   if (len(stats_prism) > 0):
     stats = join_stats(stats_prism)
     create_table(stats)
