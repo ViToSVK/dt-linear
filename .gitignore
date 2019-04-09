@@ -3,6 +3,7 @@
 *.prism
 *.iostr
 datasets/**/*.txt
+datasets/**/*.zip
 
 # Results
 results/**/*.dot

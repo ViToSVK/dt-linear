@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
 import os
+import scipy.stats
+import sys
 
 
 # Algorithms
@@ -16,7 +18,7 @@ ALGOS = {'sklearn': 'Scikit-learn',
         }
 
 
-def collect_stats(filename):
+def collect_stats(filename, subdir):
   stats = {'names': [], 'samples': [], 'features': []}
   for algo in ALGOS:
     stats[algo] = []
@@ -47,7 +49,7 @@ def collect_stats(filename):
 
   namefollows = False
   disregard = True
-  for line in open('results/reports/%s' % filename, 'r'):
+  for line in open('results/reports' + subdir + '/%s' % filename, 'r'):
     if '===' in line:
       add(disregard)
       namefollows = True
@@ -93,6 +95,19 @@ def join_stats(stats_list):
       res[algo] = np.concatenate((res[algo], stats[algo]))
       res['%s_max' % algo] = max(res['%s_max' % algo], stats['%s_max' % algo])
   return res
+
+
+def dump_stats(stats, baseline, ours):
+  print('Samples range from %d to %d' %
+        (min(stats['samples']), max(stats['samples'])))
+  print('Features range from %d to %d' %
+        (min(stats['features']), max(stats['features'])))
+  for our in ours:
+    our_other = stats[our] / stats[baseline]
+    print('%s VS %s' % (our, baseline))
+    print('arithmetic mean: %.2f\%%' % (np.mean(our_other, dtype=np.float64) * 100))
+    print('geometric mean:  %.2f\%%' % (scipy.stats.mstats.gmean(our_other, dtype=np.float64) * 100))
+    print('harmonic mean:   %.2f\%%' % (scipy.stats.hmean(our_other, dtype=np.float64) * 100))
 
 
 def search(stats, algo):
@@ -204,24 +219,31 @@ def create_plots(stats, plotname):
 
 
 def main():
-  if not os.path.isdir('results/reports'):
+  subdir = ''
+  if len(sys.argv) >= 2:
+    subdir = '/' + sys.argv[1]
+  if not os.path.isdir('results/reports' + subdir):
     return
 
   stats_prism = []
-  for filename in sorted(os.listdir('results/reports')):
+  for filename in sorted(os.listdir('results/reports' + subdir)):
     if 'report_' in filename and '.txt' in filename:
       print(filename)
       if ('prism' in filename):
-        stats_prism.append(collect_stats(filename))
+        stats_prism.append(collect_stats(filename, subdir))
       else:
-        stats = collect_stats(filename)
+        stats = collect_stats(filename, subdir)
+        dump_stats(stats, 'baseline', ['lc_ent', 'lc_auc_clf'])
         plotname = filename.replace('report_', '').replace('.txt', '')
         #search(stats, 'lc_auc_clf')
-        create_plots(stats, plotname)
+        if len(sys.argv) < 3 or sys.argv[2] != 'noplots':
+          create_plots(stats, plotname)
   if (len(stats_prism) > 0):
     stats = join_stats(stats_prism)
+    #dump_stats(stats, 'baseline', ['lc_ent', 'lc_auc_clf'])
     #search(stats, 'lc_auc_clf')
-    create_plots(stats, 'mdps_prism')
+    if len(sys.argv) < 3 or sys.argv[2] != 'noplots':
+      create_plots(stats, 'mdps_prism')
 
 
 if (__name__ == "__main__"):
