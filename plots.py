@@ -98,6 +98,7 @@ def join_stats(stats_list):
 
 
 def dump_stats(stats, baseline, ours):
+  print('Number of datasets: %d' % stats['samples'].size)
   print('Samples range from %d to %d' %
         (min(stats['samples']), max(stats['samples'])))
   print('Features range from %d to %d' %
