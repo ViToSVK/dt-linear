@@ -160,7 +160,7 @@ def all_plot(stats, plotname, x_algo, y_algo, z_algo=None, shift=True):
 
   if not os.path.exists('results/plots'):
     os.makedirs('results/plots')
-  plt.savefig('results/plots/%s_all_plot_%s_%s.png' %
+  plt.savefig('results/plots/%s_all_plot_%s_%s.pdf' %
               (plotname, x_algo, y_algo), bbox_inches='tight')
   plt.clf()
   plt.close(fig)
@@ -178,7 +178,7 @@ def versus_plot(stats, plotname, x_algo, y_algo):
   plt.ylabel('%s size' % ALGOS[y_algo], fontsize=18)
   if not os.path.exists('results/plots'):
     os.makedirs('results/plots')
-  plt.savefig('results/plots/%s_vs_plot_%s_%s.png' %
+  plt.savefig('results/plots/%s_vs_plot_%s_%s.pdf' %
               (plotname, x_algo, y_algo), bbox_inches='tight')
   plt.clf()
   plt.close(fig)
@@ -205,7 +205,7 @@ def ratio_plot(stats, plotname, x_algo, y_algo):
   plt.ylabel('%s/%s size ratio' % (ALGOS[y_algo], ALGOS[x_algo]), fontsize=18)
   if not os.path.exists('results/plots'):
     os.makedirs('results/plots')
-  plt.savefig('results/plots/%s_ratio_plot_%s_%s.png' %
+  plt.savefig('results/plots/%s_ratio_plot_%s_%s.pdf' %
               (plotname, x_algo, y_algo), bbox_inches='tight')
   plt.clf()
   plt.close(fig)
