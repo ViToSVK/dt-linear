@@ -1,7 +1,7 @@
 # Area under the curve splitting criterion
 
 import numpy as np
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression  #LogisticRegression
 from sklearn.metrics import accuracy_score, roc_auc_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import LinearSVC
@@ -95,6 +95,8 @@ class Split_auc:
     unsat_Y = data.Y[~mask]
 
     reg = LinearRegression()
+    #reg = LogisticRegression(dual=False, tol=0.0001, C=100.0, solver='liblinear',
+                             #fit_intercept=True, random_state=31337)
     clf = None if not self.use_svm else \
           LinearSVC(penalty='l1', tol=0.000001, C=10000.0,
                     dual=False, fit_intercept=True, random_state=42)
