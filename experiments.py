@@ -130,7 +130,7 @@ def write_output(out, err):
 
 def run_one(folder, filename):
   command_parts = ['python' if ASSERTIONS else 'python -O',
-                   'main.py', folder, filename]
+                   'main.py', folder, filename, 'do_sklearn', 'do_auc_reg']
   command = ' '.join(command_parts)
   stdout, stderr = run_command(command)
 
@@ -145,16 +145,29 @@ def run_one(folder, filename):
   write_output(out, err)
 
 
+def info():
+  print('---')
+  print('experiments.py runs main.py on all datasets in a given folder,')
+  print('collects the statistics and saves them in "results/reports".')
+  print('First two arguments to experiments.py are required, third optional.')
+  print('1st argument: folder name that contains "games" OR "mdps"')
+  print('2nd argument: "debug" OR "release" (whether to check code assertions)')
+  print('3rd optional argument: "replace" (whether to replace old report file)')
+
+
 def run_all():
   if len(sys.argv) < 3 or len(sys.argv) > 4:
     print('ARGUMENTS - FOLDER NAME, "debug" OR "release", (optional) "replace"')
+    info()
     return
 
   if 'games' not in sys.argv[1] and 'mdps' not in sys.argv[1]:
     print('FOLDER NAME MUST CONTAIN "games" OR "mdps", PROVIDED: %s' % sys.argv[1])
+    info()
     return
-  if not os.path.isdir('datasets/%s' % sys.argv[1]):
-    print('PROVIDED FOLDER IS NOT IN DATASETS: %s' % sys.argv[1])
+  if not os.path.isdir(sys.argv[1]):
+    print('PROVIDED FOLDER DOES NOT EXIST: %s' % sys.argv[1])
+    info()
     return
 
   global ASSERTIONS
@@ -164,25 +177,31 @@ def run_all():
     ASSERTIONS = False
   else:
     print('SECOND ARGUMENT SHOULD BE "debug" OR "release", GIVEN: %s' % sys.argv[2])
+    info()
     return
 
   replace = False
   if len(sys.argv) == 4:
     if sys.argv[3] != 'replace':
       print('OPTIONAL THIRD ARGUMENT SHOULD BE "replace", GIVEN: %s' % sys.argv[3])
+      info()
       return
     replace = True
 
   if not os.path.exists('results/reports'):
     os.makedirs('results/reports')
   global REPORT_PATH
-  REPORT_PATH = 'results/reports/report_%s.txt' % sys.argv[1]
+  subfolder = sys.argv[1]
+  if subfolder.endswith('/'):
+    subfolder = subfolder[:-1]
+  subfolder = subfolder.split('/')[-1]
+  REPORT_PATH = 'results/reports/report_%s.txt' % subfolder
   if replace:
     try:
       os.remove(REPORT_PATH)
     except OSError: pass
 
-  for filename in sorted(os.listdir('datasets/%s' % sys.argv[1])):
+  for filename in sorted(os.listdir(sys.argv[1])):
     if ('.arff' in filename and 'games' in sys.argv[1]) or (
         '.prism' in filename and 'mdps' in sys.argv[1]) or (
         '.iostr' in filename and 'mdps' in sys.argv[1]):
